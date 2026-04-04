@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comprehensive Exam Study App</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --card: #191e28;
+    --border: #252d3d;
+    --accent: #4f9cf9;
+    --accent2: #f97316;
+    --accent3: #22d3ae;
+    --accent4: #a78bfa;
+    --text: #e8edf5;
+    --muted: #7a8799;
+    --correct: #22c55e;
+    --wrong: #ef4444;
+    --font-mono: 'Space Mono', monospace;
+    --font-sans: 'Sora', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-sans); min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
+
+  header { padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(10,12,16,0.94); backdrop-filter: blur(12px); z-index: 100; }
+  .logo { font-family: var(--font-mono); font-size: 1.1rem; color: var(--accent); letter-spacing: 0.05em; }
+  .logo span { color: var(--accent2); }
+  .stats-bar { display: flex; gap: 20px; align-items: center; font-family: var(--font-mono); font-size: 0.78rem; }
+  .stat { color: var(--muted); }
+  .stat strong { color: var(--text); }
+  .stat.good strong { color: var(--correct); }
+  .stat.bad strong { color: var(--wrong); }
+  .reset-btn { font-family: var(--font-mono); font-size: 0.7rem; padding: 5px 12px; background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; cursor: pointer; letter-spacing: 0.05em; transition: all 0.15s; }
+  .reset-btn:hover { border-color: var(--wrong); color: var(--wrong); }
+
+  .app { display: flex; height: calc(100vh - 65px); }
+
+  .sidebar { width: 255px; min-width: 255px; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px 0; display: flex; flex-direction: column; }
+  .sidebar-title { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; padding: 0 18px 10px; }
+  .subject-btn { width: 100%; text-align: left; padding: 11px 18px; background: none; border: none; color: var(--muted); font-family: var(--font-sans); font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 9px; transition: all 0.15s; border-left: 3px solid transparent; }
+  .subject-btn:hover { background: var(--card); color: var(--text); }
+  .subject-btn.active { background: var(--card); color: var(--accent); border-left-color: var(--accent); }
+  .subject-btn .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .subject-btn .count { margin-left: auto; font-family: var(--font-mono); font-size: 0.7rem; background: var(--border); padding: 2px 7px; border-radius: 20px; color: var(--muted); }
+  .subject-btn.active .count { background: rgba(79,156,249,0.15); color: var(--accent); }
+
+  .sidebar-section { margin-top: auto; padding: 14px 18px; border-top: 1px solid var(--border); }
+  .mode-toggle { display: flex; gap: 6px; }
+  .mode-btn { flex: 1; padding: 8px 4px; background: var(--card); border: 1px solid var(--border); color: var(--muted); font-family: var(--font-mono); font-size: 0.7rem; border-radius: 6px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em; }
+  .mode-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .main { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+  .subject-header { margin-bottom: 24px; display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .subject-name { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .subject-progress { flex: 1; max-width: 300px; }
+  .progress-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .progress-track { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent3)); transition: width 0.4s ease; }
+
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .filter-btn { padding: 5px 14px; background: var(--card); border: 1px solid var(--border); color: var(--muted); font-family: var(--font-mono); font-size: 0.7rem; border-radius: 20px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em; }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .filter-btn.wrong-only.active { background: var(--wrong); border-color: var(--wrong); }
+  .search-bar { background: var(--card); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 0.85rem; padding: 6px 14px; border-radius: 20px; outline: none; transition: border-color 0.15s; min-width: 200px; }
+  .search-bar::placeholder { color: var(--muted); }
+  .search-bar:focus { border-color: var(--accent); }
+
+  .question-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; margin-bottom: 14px; transition: border-color 0.2s; animation: slideIn 0.2s ease; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .question-card:hover { border-color: #344057; }
+  .question-card.answered-correct { border-color: rgba(34,197,94,0.3); }
+  .question-card.answered-wrong { border-color: rgba(239,68,68,0.2); }
+
+  .q-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+  .q-num { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); background: var(--border); padding: 3px 8px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .q-text { font-size: 0.93rem; line-height: 1.65; color: var(--text); font-weight: 400; }
+
+  .options-grid { display: grid; gap: 7px; }
+  .option-btn { width: 100%; text-align: left; padding: 11px 15px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: var(--font-sans); font-size: 0.86rem; border-radius: 8px; cursor: pointer; transition: all 0.15s; display: flex; gap: 10px; align-items: flex-start; }
+  .option-btn:hover:not(:disabled) { background: var(--card); border-color: var(--accent); color: var(--accent); }
+  .option-btn .opt-label { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; color: var(--muted); min-width: 18px; margin-top: 1px; }
+  .option-btn:hover:not(:disabled) .opt-label { color: var(--accent); }
+  .option-btn.selected-correct { background: rgba(34,197,94,0.1); border-color: var(--correct); color: var(--correct); }
+  .option-btn.selected-correct .opt-label { color: var(--correct); }
+  .option-btn.selected-wrong { background: rgba(239,68,68,0.1); border-color: var(--wrong); color: var(--wrong); }
+  .option-btn.selected-wrong .opt-label { color: var(--wrong); }
+  .option-btn.reveal-correct { background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.4); color: rgba(34,197,94,0.8); }
+  .option-btn:disabled { cursor: default; }
+
+  .explanation { margin-top: 12px; padding: 12px 16px; background: rgba(79,156,249,0.06); border: 1px solid rgba(79,156,249,0.15); border-radius: 8px; font-size: 0.83rem; line-height: 1.6; color: var(--muted); animation: fadeIn 0.3s ease; }
+  .explanation strong { color: var(--accent); font-weight: 600; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .q-footer { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .status-icon { font-size: 1rem; }
+  .show-answer-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-family: var(--font-mono); font-size: 0.68rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em; }
+  .show-answer-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* FLASHCARD */
+  .flashcard-wrapper { display: flex; flex-direction: column; align-items: center; min-height: 70vh; justify-content: center; }
+  .flashcard { width: 100%; max-width: 640px; perspective: 1000px; cursor: pointer; }
+  .flashcard-inner { width: 100%; transition: transform 0.5s; transform-style: preserve-3d; position: relative; min-height: 260px; }
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+  .flashcard-face { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 40px; min-height: 260px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .flashcard-back { position: absolute; top: 0; left: 0; width: 100%; transform: rotateY(180deg); background: var(--surface); border-color: rgba(79,156,249,0.3); }
+  .fc-label { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 16px; text-transform: uppercase; }
+  .fc-question { font-size: 1.05rem; line-height: 1.65; color: var(--text); }
+  .fc-answer { font-size: 1rem; line-height: 1.6; color: var(--correct); font-weight: 600; margin-bottom: 10px; }
+  .fc-hint { font-size: 0.8rem; color: var(--muted); margin-top: 10px; }
+  .fc-nav { display: flex; gap: 12px; margin-top: 28px; align-items: center; }
+  .fc-nav-btn { padding: 10px 24px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-family: var(--font-mono); font-size: 0.78rem; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+  .fc-nav-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .fc-counter { font-family: var(--font-mono); font-size: 0.83rem; color: var(--muted); min-width: 80px; text-align: center; }
+  .fc-hint-text { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); margin-top: 14px; }
+
+  .empty { text-align: center; padding: 80px 20px; color: var(--muted); }
+  .empty .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .empty p { font-size: 0.9rem; }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 720px) {
+    .sidebar { width: 180px; min-width: 180px; }
+    .main { padding: 16px; }
+    header { padding: 12px 14px; }
+    .stats-bar { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">COMPREHENSIVE<span>EXAM</span></div>
+  <div class="stats-bar">
+    <div class="stat">Total <strong id="statTotal">0</strong></div>
+    <div class="stat good">Correct <strong id="statCorrect">0</strong></div>
+    <div class="stat bad">Wrong <strong id="statWrong">0</strong></div>
+    <div class="stat">Score <strong id="statScore">—</strong></div>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">RESET</button>
+</header>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-title">Subjects</div>
+    <div id="subjectList"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-title" style="padding:0 0 10px">Mode</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeQuiz" onclick="setMode('quiz')">QUIZ</button>
+        <button class="mode-btn" id="modeFlash" onclick="setMode('flash')">FLASH</button>
+      </div>
+    </div>
+  </div>
+  <div class="main" id="mainArea"></div>
+</div>
+
+<script>
+const subjects = {
+  "Computer Networks": {
+    color: "#4f9cf9",
+    questions: [
+      {q:"What is the main purpose of public key cryptography?",opts:["Encryption","Authentication","Key exchange","All of the above"],ans:3,exp:"Public key cryptography serves all three: encryption, authentication, and key exchange. [cite: 1062]"},
+      {q:"Which algorithm is used for creating and verifying digital signatures?",opts:["RSA","AES","DES","SHA"],ans:0,exp:"RSA is the most common algorithm for digital signatures. [cite: 1063]"},
+      {q:"What is authentication in cryptography?",opts:["The process of encrypting a message","The process of verifying the identity of a user","The process of generating a digital signature","The process of decrypting a message"],ans:1,exp:"Authentication verifies the identity of a communicating party. [cite: 1064]"},
+      {q:"Which is an example of 'something you know' for authentication?",opts:["Password","Fingerprint","Smart card","All of the above"],ans:0,exp:"A password is the classic 'something you know' authentication factor. [cite: 1065]"},
+      {q:"Which type of authentication uses multiple factors?",opts:["Single-factor","Two-factor","Three-factor","Multi-factor"],ans:3,exp:"Multi-factor authentication (MFA) uses more than one factor. [cite: 1066]"},
+      {q:"Which type of authentication uses a password and a security token?",opts:["Single-factor","Two-factor","Three-factor","Multi-factor"],ans:1,exp:"Password (something you know) + token (something you have) = Two-factor. [cite: 1067]"},
+      {q:"Which type of authentication uses biometric data?",opts:["Single-factor","Two-factor","Three-factor","Multi-factor"],ans:0,exp:"Biometric alone = single factor (something you are). [cite: 1068]"},
+      {q:"Which type of authentication uses a smart card and a PIN?",opts:["Single-factor","Two-factor","Three-factor","Multi-factor"],ans:1,exp:"Card (something you have) + PIN (something you know) = Two-factor. [cite: 1069]"},
+      {q:"Which attack involves guessing passwords until the correct one is found?",opts:["Brute force attack","Dictionary attack","Social engineering attack","Man-in-the-middle attack"],ans:0,exp:"Brute force systematically tries all possible combinations. [cite: 1070]"},
+      {q:"Which attack uses pre-computed hashes to guess passwords?",opts:["Brute force attack","Dictionary attack","Rainbow table attack","Man-in-the-middle attack"],ans:2,exp:"Rainbow table attacks use precomputed hash tables for fast lookups. [cite: 1071]"},
+      {q:"Which attack involves tricking someone into revealing their password?",opts:["Brute force attack","Dictionary attack","Social engineering attack","Man-in-the-middle attack"],ans:2,exp:"Social engineering exploits human psychology. [cite: 1072]"},
+      {q:"Which key is used for encryption in a public key cryptosystem?",opts:["Public key","Private key","Symmetric key","None of the above"],ans:0,exp:"The public key encrypts; private key decrypts. [cite: 1073]"},
+      {q:"Which attack intercepts and modifies communication between two parties?",opts:["Brute force","Dictionary","Social engineering","Man-in-the-middle"],ans:3,exp:"MITM attacks intercept and potentially alter communications. [cite: 1074]"},
+      {q:"Which encryption algorithm uses the same key for encryption and decryption?",opts:["Public key","Private key","Symmetric key","Asymmetric key"],ans:2,exp:"Symmetric encryption uses one shared secret key. [cite: 1075]"},
+      {q:"Which encryption algorithm uses different keys for encryption and decryption?",opts:["Public key","Private key","Symmetric key","Asymmetric key"],ans:3,exp:"Asymmetric (public-key) cryptography uses a key pair. [cite: 1076]"},
+      {q:"Which type of encryption algorithm is faster?",opts:["Public key","Private key","Symmetric key","Asymmetric key"],ans:2,exp:"Symmetric algorithms are much faster due to simpler operations. [cite: 1077]"},
+      {q:"Which type of encryption algorithm is more secure?",opts:["Public key","Private key","Symmetric key","Asymmetric key"],ans:3,exp:"Asymmetric encryption is generally considered more secure. [cite: 1078]"},
+      {q:"Which protocol is used for secure communication over the internet?",opts:["TLS/SSL","HTTPS","SSH","TCP/IP"],ans:1,exp:"HTTPS is HTTP secured over TLS/SSL. [cite: 1079]"},
+      {q:"Which protocol is used for secure remote login over an insecure network?",opts:["TLS/SSL","HTTPS","SSH","TCP/IP"],ans:2,exp:"SSH (Secure Shell) provides encrypted remote login. [cite: 1080]"},
+      {q:"Anarkali digitally signs a message. Verification by Salim requires:",opts:["Anarkali's Public Key","Salim's Public Key","Salim's Private Key","Anarkali's Private Key"],ans:0,exp:"You verify a digital signature using the SIGNER's public key. [cite: 1082]"},
+      {q:"Sender S sends message m to R digitally signed by S. Which violations are possible?",opts:["(I) and (II) only","(I) only","(II) only","(II) and (III) only"],ans:0,exp:"Digital signatures prevent some but not all security violations. [cite: 1083]"},
+      {q:"AES uses a ___ bit block size and key size of ___ bits.",opts:["128; 128 or 256","64; 128 or 192","256; 128, 192, or 256","128; 128, 192, or 256"],ans:3,exp:"AES always has 128-bit blocks and supports 128, 192, or 256-bit keys. [cite: 1084, 1085]"},
+      {q:"Which key is kept secret in a public key cryptosystem?",opts:["Public key","Private key","Symmetric key","None"],ans:1,exp:"The private key must never be shared. [cite: 1086]"},
+      {q:"How many rounds does AES-256 perform?",opts:["10","12","14","16"],ans:2,exp:"AES-128=10, AES-192=12, AES-256=14 rounds. [cite: 1087]"},
+      {q:"What is the key size in the S-AES algorithm?",opts:["16 bits","32 bits","24 bits","None"],ans:0,exp:"Simplified AES (S-AES) uses a 16-bit key. [cite: 1088]"},
+      {q:"Dynamic packet filters (4th-gen firewalls) work at:",opts:["Application Layer","TCP","UDP","TCP, UDP"],ans:3,exp:"Dynamic packet filters operate at both TCP and UDP transport layer. [cite: 1089]"},
+      {q:"Authentication and Access control are provided by Network Security:",opts:["True","False"],ans:0,exp:"Network security provides both authentication and access control. [cite: 1090]"},
+      {q:"________ is the process of verifying the identity of a user.",opts:["Authentication","Identification","Validation","Verification"],ans:0,exp:"Authentication = verifying identity of a user. [cite: 1091]"},
+      {q:"A digital signature needs a:",opts:["Private-key system","Shared-key system","Public-key system","All of them"],ans:2,exp:"Digital signatures require asymmetric (public-key) cryptography. [cite: 1092]"},
+      {q:"Encryption and decryption provide confidentiality but NOT:",opts:["Authentication","Integrity","Privacy","All"],ans:0,exp:"Encryption alone does NOT provide authentication. [cite: 1093]"},
+      {q:"Decrypt HQFUBSWHG WHAW using Caesar Cipher (shift 3):",opts:["ABANDONED LOCK","ENCRYPTED TEXT","ABANDONED TEXT","ENCRYPTED LOCK"],ans:1,exp:"Caesar Cipher shift −3: HQFUBSWHG WHAW → ENCRYPTED TEXT. [cite: 1095]"},
+      {q:"A ___ signature is included in the document; a ___ signature is a separate entity.",opts:["conventional; digital","digital; digital","either (a) or (b)","neither (a) or (b)"],ans:0,exp:"Conventional signatures are embedded; digital signatures are separate files. [cite: 1097]"},
+      {q:"Digital signature provides:",opts:["Authentication","Non-repudiation","Both (a) and (b)","Neither"],ans:2,exp:"Digital signatures provide both authentication and non-repudiation. [cite: 1100]"},
+      {q:"Which algorithm is used for generating public and private keys?",opts:["RSA","AES","DES","SHA"],ans:0,exp:"RSA is the standard algorithm for generating public/private key pairs. [cite: 1102]"},
+      {q:"Digital signature CANNOT provide ___ for the message:",opts:["Integrity","Confidentiality","Non-repudiation","Authentication"],ans:1,exp:"Digital signatures don't encrypt — they don't provide confidentiality. [cite: 1104]"},
+      {q:"If ___ is needed, a cryptosystem must be applied over the scheme.",opts:["Integrity","Confidentiality","Non-repudiation","Authentication"],ans:1,exp:"For confidentiality, the message itself must be encrypted. [cite: 1106]"},
+      {q:"When two members contact KDC, the secret key created is a ___ key.",opts:["Public","Session","Complimentary","None"],ans:1,exp:"KDC creates a temporary session key for each communication. [cite: 1108]"},
+      {q:"___ requires an authentication server and a ticket-granting server.",opts:["KDC","Kerberos","CA","None"],ans:1,exp:"Kerberos uses AS (Authentication Server) and TGS (Ticket-Granting Server). [cite: 1110]"},
+      {q:"CHAP stands for:",opts:["Challenge Handshake Authentication Protocol","Challenge Hardware Authentication Protocol","Circuit Hardware Authentication Protocol","Circuit Handshake Authentication Protocol"],ans:0,exp:"CHAP = Challenge Handshake Authentication Protocol. [cite: 1112]"},
+      {q:"SSL provides:",opts:["Message integrity","Confidentiality","Both A and B","None"],ans:2,exp:"SSL/TLS provides both integrity and confidentiality. [cite: 1114]"},
+      {q:"Which is NOT a public key distribution means?",opts:["Public-Key Certificates","Hashing Certificates","Publicly available directories","Public-Key authority"],ans:1,exp:"'Hashing Certificates' is not a real distribution mechanism. [cite: 1116]"},
+      {q:"Which public key distribution system is most secure?",opts:["Public-Key Certificates","Public announcements","Publicly available directories","Public-Key authority"],ans:3,exp:"Public-Key authority involves a trusted centralized server. [cite: 1118]"},
+      {q:"Which system uses a trusted third party interface?",opts:["Public-Key Certificates","Public announcements","Publicly available directories","Public-Key authority"],ans:3,exp:"Public-Key authority is a trusted third party managing key distribution. [cite: 1120]"},
+      {q:"The subject unique identifier of X.509 was added in which version?",opts:["1","2","3","4"],ans:1,exp:"Subject Unique Identifier was introduced in X.509 version 2. [cite: 1122]"},
+      {q:"What is the primary advantage of using public key cryptography?",opts:["Faster encryption","Simpler key management","Stronger security","Lower overhead"],ans:1,exp:"No need to securely share a secret key beforehand. [cite: 1124]"},
+      {q:"Both A and B can save the other’s public key for future - a technique known as:",opts:["time stamping","polling","caching","squeezing"],ans:2,exp:"Storing keys for later use is known as caching. [cite: 1126]"},
+      {q:"Which is a network security system that monitors traffic based on rules?",opts:["Cookie","Spyware","Firewall","Spam"],ans:2,exp:"A firewall controls incoming/outgoing traffic based on security rules. [cite: 1128]"},
+      {q:"A digital signature is required for:",opts:["non-repudiation by sender","all e-mail","DHCP server","FTP transactions"],ans:0,exp:"Digital signatures ensure the sender cannot deny sending the message. [cite: 1130]"},
+      {q:"To authenticate the data origin, one needs a:",opts:["MDC","MAC","either (a) or (b)","neither (a) nor (b)"],ans:2,exp:"Both MDC and MAC can be used for origin authentication. [cite: 1132]"},
+      {q:"A layer-4 firewall cannot block:",opts:["HTTP traffic at night","all ICMP traffic","specific IP traffic","specific TCP user traffic"],ans:3,exp:"Layer-4 firewalls work with ports/IPs, not user-level identities. [cite: 1134]"},
+      {q:"A session symmetric key between two parties is used:",opts:["Only once","Twice","Multiple times","Depends"],ans:0,exp:"Session keys are used once per communication session and then discarded. [cite: 1136]"},
+      {q:"One security protocol for the e-mail system is:",opts:["IPSec","SSL","PGP","None"],ans:2,exp:"PGP (Pretty Good Privacy) is the standard for email security. [cite: 1138]"},
+      {q:"___ operates in transport mode or tunnel mode.",opts:["IPSec","SSL","PGP","None"],ans:0,exp:"IPSec has two modes: transport and tunnel. [cite: 1140]"},
+      {q:"___ provides authentication at the IP level.",opts:["AH","ESP","PGP","SSL"],ans:0,exp:"AH (Authentication Header) provides integrity and authentication for IP packets. [cite: 1142]"},
+      {q:"What is a digital signature?",opts:["Message encrypted with private key","Message encrypted with public key","Message hashed with private key","Message hashed with public key"],ans:2,exp:"Digital signature = hash of message signed with the private key. [cite: 1144]"},
+      {q:"What is the main purpose of a digital signature?",opts:["Encryption","Authentication","Key exchange","All of the above"],ans:1,exp:"Primary purpose is authentication and non-repudiation. [cite: 1146]"},
+      {q:"Which key is used for CREATING a digital signature?",opts:["Public key","Private key","Symmetric key","None"],ans:1,exp:"You SIGN with your PRIVATE key. [cite: 1148]"},
+      {q:"Which key is used for VERIFYING a digital signature?",opts:["Public key","Private key","Symmetric key","None"],ans:0,exp:"You VERIFY with the signer's PUBLIC key. [cite: 1150]"},
+      {q:"___ error means two or more bits in the data unit have changed.",opts:["Burst","Double Bit","Single Bit","None"],ans:1,exp:"Double Bit error = exactly 2 bits changed. [cite: 1152]"},
+      {q:"Which Topology is used in Ethernet?",opts:["Bus","Star","Mesh","Ring"],ans:1,exp:"Modern Ethernet uses a star topology. [cite: 1154]"},
+      {q:"A signal ranges from 1 KHz to 40 MHz. Find the bandwidth.",opts:["39.999 MHz","3990 Hz","3 KHz","39 MHz"],ans:0,exp:"Bandwidth = highest − lowest = 40 MHz − 1 KHz = 39.999 MHz. [cite: 1157]"},
+      {q:"A computer connected directly to the internet must have:",opts:["Public Address","Multicast Address","Private Address","None"],ans:0,exp:"Direct internet connection requires a public IP address. [cite: 1160]"},
+      {q:"What is the difference between a switch and a hub?",opts:["Hub transmits to all, switch to specific ports","Switch physical, hub data-link","Switch layer 2, hub layer 1","Hub is smart, switch is dumb"],ans:2,exp:"Switch (layer 2) uses MAC addresses; hub (layer 1) broadcasts to all ports. [cite: 1162]"},
+      {q:"10 devices in mesh topology. How many cables and ports per device?",opts:["90,9","110,9","45,9","55,9"],ans:2,exp:"n(n-1)/2 = 45 cables; each device needs n-1 = 9 ports. [cite: 1165]"},
+      {q:"Which functions are NOT of a Router?",opts:["i, iv, vi","i, v, vi","i, ii, v, vi","iv, v, vi"],ans:0,exp:"Routers don't do data format conversion, error detection in packets, or broadcast forwarding. [cite: 1169]"},
+      {q:"Virtual switching circuit: what happens when a router fails?",opts:["All crashed packets lost","All virtual circuits get terminated","Congestion control fails","Packet sequence disrupted"],ans:1,exp:"In virtual circuit networks, all VCs passing through a failed router are terminated. [cite: 1171]"},
+      {q:"Single stage switch with 30 inputs and 30 outputs needs how many crosspoints?",opts:["20","30","900","600"],ans:2,exp:"N×N crossbar switch: N² = 30×30 = 900 crosspoints. [cite: 1173]"},
+      {q:"Which function is NOT used by a TCP server?",opts:["Connect()","Socket()","Bind()","Listen()"],ans:0,exp:"Connect() is used by TCP client to initiate connection. [cite: 1175]"},
+      {q:"Flow control is mainly a function of which layer?",opts:["Application","Presentation","Session","Data Link"],ans:3,exp:"Flow control is a primary function of the Data Link layer. [cite: 1177]"},
+      {q:"What is the Hamming distance between 10101010 and 01010101?",opts:["8","0","4","None"],ans:0,exp:"All 8 bits differ → Hamming distance = 8. [cite: 1179]"},
+      {q:"What is the network address for 12.12.12.12/20?",opts:["12.12.1.1","12.12.0.2","12.12.12.0","12.12.0.0"],ans:3,exp:"/20 mask: first 20 bits are network. 12.12.0.0. [cite: 1181]"},
+      {q:"Which routing protocol uses throughput as a cost variable?",opts:["RIP","Distance Vector","OSPF","Interdomain"],ans:2,exp:"OSPF supports multiple cost metrics including throughput. [cite: 1183]"},
+      {q:"In IPv6, the traffic class field corresponds to which IPv4 field?",opts:["Fragmentation","Fast-Switching","ToS Field","Option Field"],ans:2,exp:"IPv6 Traffic Class ≡ IPv4 Type of Service (ToS) field. [cite: 1185]"},
+      {q:"Identify the class of IPv4 address: 11011110 10101001 10101010 10011001",opts:["Class A","Class B","Class C","Class D"],ans:3,exp:"Starts with 1110 → Class D (multicast). [cite: 1187]"},
+      {q:"___ Layer aggregates data and passes to ___ Layer.",opts:["Application, Session","Presentation, Session","Transport, Network","Network, Data Link"],ans:2,exp:"Transport layer aggregates data from processes and hands to the Network layer. [cite: 1189]"},
+      {q:"Which are Application Layer Protocols?",opts:["HTTP, SMTP, SNMP","FTP, ICMP, IGMP","DHCP, ARP, ICMP","None"],ans:0,exp:"HTTP, SMTP, SNMP are Application layer protocols. [cite: 1191]"},
+      {q:"In sliding window, 100 good frames sent, how many ACKs?",opts:["99","100","101","Some number ≤ 100"],ans:3,exp:"Sliding window uses cumulative ACKs — fewer than 100 may be sent. [cite: 1193]"},
+      {q:"Checksum uses ___ arithmetic.",opts:["1's Complement","2's Complement","None","None"],ans:0,exp:"Checksum computation uses 1's complement arithmetic. [cite: 1195]"},
+      {q:"A socket address is a combination of ___ and ___.",opts:["IP address and Port number","MAC address and Port number","Port Number and Application ID","Email address and IP address"],ans:0,exp:"Socket = IP address + Port number uniquely identifies an endpoint. [cite: 1199]"},
+      {q:"TCP: receiver window = 5KB, congestion window = 2KB. Sending window size?",opts:["3KB","2KB","4KB","5KB"],ans:1,exp:"Sending window = min(receiver window, congestion window) = 2KB. [cite: 1202]"},
+      {q:"Hamming encoding: receiver gets 11001100111, result is 0101. Which bit is in error?",opts:["1","3","5","No Error"],ans:2,exp:"Hamming code syndrome 0101 = 5 in decimal → bit 5 is in error. [cite: 1204]"},
+      {q:"Network layer adds 20-byte header + 20 bytes optional info. What is header size?",opts:["10","20","30","40"],ans:3,exp:"Standard 20 bytes + optional 20 bytes = 40 bytes total. [cite: 1207]"},
+      {q:"Adding 1 and 1 in modulo-2 arithmetic results in:",opts:["0","1","2","11"],ans:0,exp:"In modulo-2 (XOR): 1⊕1=0. [cite: 1209]"},
+      {q:"The completion of one full pattern of a signal is called a:",opts:["Period","Cycle","Frame","Segment"],ans:1,exp:"One complete pattern of a periodic signal = one cycle. [cite: 1211]"},
+      {q:"FTP follows which approach to transfer data?",opts:["Client and Server","Peer to Peer","Cloud based","Parallel"],ans:0,exp:"FTP uses a client-server architecture. [cite: 1214]"},
+      {q:"10 files to transfer from A to B via FTP. How many connections?",opts:["10","11","12","13"],ans:1,exp:"FTP needs 1 control connection + 1 data connection per file = 1+10 = 11. [cite: 1217]"},
+      {q:"Which protocol extracts email from the server?",opts:["SMTP","IMAP","FTP","TCP"],ans:1,exp:"IMAP is used to retrieve mail from a server. [cite: 1219]"},
+      {q:"The term that refers to infinite number of values in the range is:",opts:["Peak","Analog Signal","Digital Signal","None"],ans:1,exp:"Analog signals represent an infinite range of values. [cite: 1221]"},
+      {q:"Both Analog and Digital signals can be:",opts:["Periodic","Non-Periodic","Periodic or Non-Periodic","None"],ans:2,exp:"Both types can be periodic or non-periodic. [cite: 1223]"},
+      {q:"To efficiently manage hardware/software configuration, it includes:",opts:["Monitoring behavior","Replacement of components","Documentation","Managing access"],ans:1,exp:"Configuration management includes hardware replacement/updates. [cite: 1226]"},
+      {q:"Pick the odd one as a Network Layer function:",opts:["Routing","Inter-Networking","Error Control","None"],ans:2,exp:"Error Control is a Data Link layer function. [cite: 1228]"},
+      {q:"In a ___ network, two types of addressing are involved: global and local.",opts:["Virtual Circuit","Datagram","Circuit-Switched","All"],ans:0,exp:"Virtual circuit networks use both global and local addresses. [cite: 1230]"},
+      {q:"In which switching is store-and-forward used?",opts:["Packet Switching","Circuit Switching","Cell Switching","None"],ans:0,exp:"Packet switching stores the complete packet before forwarding. [cite: 1232]"},
+      {q:"Circuit switching is employed in which layer?",opts:["Physical layer","Datalink layer","Network layer","None"],ans:0,exp:"Circuit switching is a physical layer concept. [cite: 1234]"},
+      {q:"Packet switching is employed in which layer?",opts:["Physical layer","Datalink layer","Network layer","None"],ans:2,exp:"Packet switching operates at the Network layer. [cite: 1236]"},
+      {q:"Which technique belongs to connection-oriented?",opts:["Packet Switching","Circuit Switching","Router","None"],ans:1,exp:"Circuit switching establishes a dedicated connection. [cite: 1238]"},
+      {q:"Which technique belongs to connectionless?",opts:["Packet Switching","Circuit Switching","Router","None"],ans:0,exp:"Packet switching (datagram mode) is connectionless. [cite: 1240]"},
+      {q:"Which switching needs to establish and provides a dedicated connection?",opts:["Packet","Circuit","Cell","None"],ans:1,exp:"Circuit switching creates a dedicated end-to-end path. [cite: 1242]"},
+      {q:"Mesh topology leads to:",opts:["Redundant connections","Single point of failure","Hard to add devices","None"],ans:0,exp:"Full mesh provides multiple paths — high redundancy. [cite: 1244]"},
+      {q:"Star topology: every device is:",opts:["Connected to all others","Connected to two nodes","Individually connected to a central node","None"],ans:2,exp:"In a star, all devices connect to a central hub/switch. [cite: 1246]"},
+      {q:"Which one supports error or flow control?",opts:["Frame Relay","TCP","UDP","None"],ans:1,exp:"TCP provides reliable delivery with error and flow control. [cite: 1248]"},
+      {q:"Which is a connection-oriented data service?",opts:["AAL 2","AAL 3","AAL 4","None"],ans:2,exp:"AAL 4 provides connection-oriented service. [cite: 1250]"},
+      {q:"Organization with constant-rate long-duration data. Which switching is preferred?",opts:["Packet","Circuit","Datagram","All"],ans:1,exp:"Circuit switching is ideal for constant long-duration flows. [cite: 1253]"},
+      {q:"Which is NOT present in TCP/IP model?",opts:["Network Layer","Transport Layer","Session Layer","None"],ans:2,exp:"TCP/IP has no Session layer. [cite: 1255]"},
+      {q:"Which layer determines the speed of data transmission?",opts:["Logical Layer","Physical Layer","Datalink Layer","None"],ans:1,exp:"Physical layer defines transmission rates and signaling. [cite: 1257]"},
+      {q:"Encryption and Decryption is done by which layer?",opts:["Session layer","Application layer","Presentation layer","None"],ans:2,exp:"Presentation layer handles encryption and data format conversion. [cite: 1259]"},
+      {q:"Which is an appropriate example of Half Duplex?",opts:["Cordless phone","Telephone","Walkie Talkie","None"],ans:2,exp:"Walkie-talkies transmit in one direction at a time. [cite: 1261]"},
+      {q:"Coverage area of LAN technology is:",opts:["few kilometers","100-1000 km","5 to 50 km","None"],ans:0,exp:"LAN typically covers a few kilometers. [cite: 1263]"},
+      {q:"Data transmission speed of LAN technology is:",opts:["up to 100 Mbps","up to 20 Mbps","up to 1000 Mbps","None"],ans:2,exp:"Modern Gigabit Ethernet reaches up to 1000 Mbps. [cite: 1265]"},
+      {q:"The functionality of ARP is:",opts:["Map logical address to physical address","Map physical to logical address","Map virtual to logical address","None"],ans:0,exp:"ARP maps IP (logical) to MAC (physical) addresses. [cite: 1267]"},
+      {q:"Which one is a MAC address?",opts:["192.168.10.2","07:01:02:01:2C:4B","192:220:02:01:2C","None"],ans:1,exp:"MAC addresses are 6 bytes in hex. [cite: 1269]"},
+      {q:"What is the size of IPv4?",opts:["64 bits","128 bits","32 bits","none"],ans:2,exp:"IPv4 addresses are 32 bits. [cite: 1271]"},
+      {q:"Which one allows communication between networks?",opts:["Switch","Router","Repeater","None"],ans:1,exp:"Routers connect different networks. [cite: 1273]"},
+      {q:"In the ___ approach of packet switching, all packets follow the same route.",opts:["Datagram","Virtual circuit","Virtual channel","None"],ans:1,exp:"Virtual circuit packet switching: all packets follow a pre-established path. [cite: 1275]"},
+      {q:"Which one allows communication between two DIFFERENT networks?",opts:["Switch","Router","Gateway","None"],ans:2,exp:"Gateways handle protocol translation. [cite: 1277]"},
+      {q:"Data unit 10100101 changed to 10100100. This is referred as:",opts:["Single bit error","Burst error","Common error","None"],ans:0,exp:"Only one bit changed → single bit error. [cite: 1279]"},
+      {q:"What is the Hamming distance between (10101, 11110)?",opts:["2","3","4","None"],ans:1,exp:"Positions 2, 3, and 5 differ → Hamming distance = 3. [cite: 1281]"},
+      {q:"Simple parity check can detect:",opts:["An odd number of errors","An even number of errors","Both odd and even","None"],ans:0,exp:"Simple parity detects odd numbers of errors. [cite: 1283]"},
+      {q:"Static routing table:",opts:["Contains information entered manually","Updated periodically by dynamic routing","Updated by routing protocols","None"],ans:0,exp:"Static routes are configured manually. [cite: 1285]"},
+      {q:"Which is an intra-domain routing protocol?",opts:["Distance vector","Path vector","Border gateway routing protocol","None"],ans:0,exp:"Distance Vector (RIP) is an intra-domain protocol. [cite: 1287]"},
+      {q:"Which is an inter-domain routing protocol?",opts:["Distance vector","Path vector","Link state routing protocol","None"],ans:1,exp:"Path vector (BGP) is used between autonomous systems. [cite: 1289]"},
+      {q:"Routing Information Protocol (RIP) is an:",opts:["Intradomain based on distance vector","Intradomain based on link state","Interdomain based on distance vector","None"],ans:0,exp:"RIP = intra-domain, distance-vector routing protocol. [cite: 1291]"},
+      {q:"Path vector routing protocol can be used:",opts:["Only inside an AS","Between autonomous systems","In intra-domain","None"],ans:1,exp:"Path vector (BGP) is designed for inter-AS routing. [cite: 1293]"},
+      {q:"Broadcast: relationship between source and destination is:",opts:["one-to-all","one-to-many","one-to-one","None"],ans:0,exp:"Broadcast = one source to ALL destinations. [cite: 1295]"},
+      {q:"A Switched network consists of a series of interlinked nodes called:",opts:["Endpoints","Packets","Switches","Lines"],ans:2,exp:"Switched networks are built from interconnected switches. [cite: 1297]"},
+      {q:"Bursty data is:",opts:["Rate changes smoothly","Rate does not change","Rate changes suddenly in very short time","None"],ans:2,exp:"Bursty = traffic that varies dramatically in short periods. [cite: 1299]"},
+      {q:"Discarding policy that routers use to prevent congestion is called:",opts:["Congestion","Packet loss","Retransmission","None"],ans:0,exp:"Routers use specific policies to prevent network congestion. [cite: 1301]"},
+      {q:"Node-to-node congestion control is called:",opts:["Choke packet","Back Pressure","Front Pressure","None"],ans:1,exp:"Back pressure propagates congestion signals upstream. [cite: 1303]"},
+      {q:"Data arriving exactly as sent is referred as:",opts:["Message confidentiality","Message Integrity","Message Authentication","None"],ans:1,exp:"Integrity means data is not altered in transit. [cite: 1305]"},
+      {q:"Type of relationship between signature and document in Digital Signature:",opts:["One to many","Many to one","One to one","None"],ans:2,exp:"Each document has exactly one digital signature. [cite: 1307]"},
+      {q:"The topology with highest reliability is:",opts:["Star","Bus","Mesh","Ring"],ans:2,exp:"Mesh provides maximum fault tolerance. [cite: 1309]"},
+      {q:"Internet is a type of:",opts:["Wide Area Network","Local Area Network","Personal Area Network","Metropolitan Area Network"],ans:0,exp:"The Internet is the largest WAN. [cite: 1311]"}
+    ]
+  },
+  "DSA": {
+    color: "#f97316",
+    questions: [
+      {q:"If height of a binary tree is 7, maximum number of internal nodes is:",opts:["128","127","64","63"],ans:1,exp:"Max internal nodes = 2^h − 1 = 2^7 − 1 = 127. [cite: 1314]"},
+      {q:"Quicksort first partition: 10, 8, 6, 9, 11, 14, 16, 15. Which is true?",opts:["11 could be pivot, 14 could not","14 could be pivot, 11 could not","Either 11 or 14 could be pivot","Both 11 and 14 are pivot elements"],ans:2,exp:"Both 11 and 14 are in their final positions. [cite: 1316, 1317]"},
+      {q:"Advantage of recursive approach over iterative?",opts:["Consumes less memory","Less code and easy to implement","Consumes more memory","All options"],ans:1,exp:"Recursion typically requires less code. [cite: 1319]"},
+      {q:"Array LA={1,2,4,3} sorted with bubble sort. How many iterations required?",opts:["4","2","1","0"],ans:2,exp:"Only 1 pass needed: swap 4 and 3. [cite: 1321, 1322]"},
+      {q:"char c[]='VITEEE2022'; char *p=c; printf('%s', p+p[1]-p[3]);",opts:["EE2022","EEE2022","E2022","Error"],ans:1,exp:"p[1]='I'=73, p[3]='E'=69; 73-69=4; prints from index 4. [cite: 1324]"},
+      {q:"int s[5]; s++; Predict the output:",opts:["1002","1004","1020","Error"],ans:3,exp:"Array names are non-modifiable; s++ is a compile error. [cite: 1326, 1327]"},
+      {q:"Runtime of T(n) = 7T(n/3) + n² log n:",opts:["Θ(n² log n)","Θ(n²)","Θ(n² log² n)","Θ(n log² n)"],ans:0,exp:"By Master theorem case 3: T(n) = Θ(n² log n). [cite: 1330]"},
+      {q:"Minimum time to check if a binary tree is a BST:",opts:["O(1)","O(n)","O(log n)","O(n log n)"],ans:1,exp:"You must visit every node once — O(n). [cite: 1332]"},
+      {q:"Circular array queue: front=0, rear=maxsize-1. What is the count?",opts:["0","3","4","2"],ans:2,exp:"If front=0 and rear=max-1, all 4 slots are filled. [cite: 1334]"},
+      {q:"Which data structure is directly applied to scheduling?",opts:["Stack","Queue","Tree","Linked list"],ans:1,exp:"Queues model FIFO scheduling. [cite: 1336]"},
+      {q:"How many queues needed to implement a stack efficiently?",opts:["1","3","4","2"],ans:3,exp:"Two queues are needed to simulate LIFO. [cite: 1338]"},
+      {q:"Which would you NOT use a stack for?",opts:["only (i)","only (ii) and (iii)","only (iii) and (iv)","None"],ans:2,exp:"Sorting and printing in order don't use LIFO. [cite: 1342]"},
+      {q:"Which queue type is useful in online multiplayer games?",opts:["Simple queue","Circular Queue","Priority Queue","Single Ended Queue"],ans:2,exp:"Priority Queue assigns resources based on importance. [cite: 1344]"},
+      {q:"Last node has pointer to first node — this linked list is:",opts:["Singly linked list","Doubly linked list","Singly Circular linked list","Doubly Circular linked list"],ans:2,exp:"Tail pointing to head in a SLL is singly circular. [cite: 1346]"},
+      {q:"Array A[1..5][1..10] in column-major, base=50. Address of A[i][j]?",opts:["5i + j + 44","i + 5j + 44","5i + j + 39","5j + i + 39"],ans:1,exp:"Address = 50 + (j-1)*5 + (i-1) = i + 5j + 44. [cite: 1348]"},
+      {q:"A binary tree must have at least one node:",opts:["It should have at least one node","2","3","0"],ans:0,exp:"A binary tree must contain at least one node. [cite: 1350]"},
+      {q:"Which sequence CANNOT be printed using a stack (push 1-7)?",opts:["6 3 1 2 5 7","2 1 3 6 7 5","5 2 7 1 3 6","None"],ans:1,exp:"2 1 3 6 7 5 violates LIFO constraints. [cite: 1352]"},
+      {q:"Decreasing asymptotic complexity: f1=O(n), f2=O(log n), f3=O(n²), f4=O(2ⁿ):",opts:["f1,f2,f3,f4","f2,f1,f4,f3","f1,f2,f4,f3","f4,f3,f1,f2"],ans:3,exp:"2ⁿ > n² > n > log n. [cite: 1354]"},
+      {q:"Which methods have O(n) for a sorted array in descending order?",opts:["(i)","(ii),(iii),(iv)","(iii),(iv)","(i),(iii)"],ans:2,exp:"Specific array operations on sorted data take O(n). [cite: 1358]"},
+      {q:"Infix version of postfix: x 12 + z 17 y + 42 * / +",opts:["x + 12 + z / ((17 + y) * 42)","x + 12 + z / 17 + y * 42","x + 12 + z / (17 + y) * 42","x + (12+z)/(17+y*42)"],ans:0,exp:"Evaluate stack: (x+12) + z / ((17+y) * 42). [cite: 1360]"},
+      {q:"T1(n)=O(F(n)) and T2(n)=O(F(n)). Which is true?",opts:["T1(n)+T2(n)=O(F(n))","T1(n)*T2(n)=O(F(n))","T1(n)=T2(n)=O(1)","T1(n)=O(T2(n))"],ans:0,exp:"Sum of two O(F(n)) functions is still O(F(n)). [cite: 1363]"},
+      {q:"In a connected graph, which inequality is NOT correct?",opts:["e ≤ v²","e ≥ v−1","v ≥ e/2","All"],ans:2,exp:"v ≥ e/2 is not always true. [cite: 1365]"},
+      {q:"Circular doubly linked list with 2 nodes. Which is NOT true?",opts:["Head->next = tail","Head->prev->next = tail","Tail->prev->next = tail","Tail->next->prev = tail"],ans:2,exp:"Tail->prev->next should equal head in a 2-node circular DLL. [cite: 1367]"},
+      {q:"Sequence printed after stack operations:",opts:["9 7 3 5 4 8","8 4 5 3 7 9","3 4 8 5 7 9","None"],ans:1,exp:"The pop sequence based on LIFO order. [cite: 1369]"},
+      {q:"After operations on an empty stack of size 4:",opts:["Stack underflow","Stack overflow","No error","None"],ans:1,exp:"Pushing beyond size 4 causes overflow. [cite: 1371]"},
+      {q:"For f(n)=n²+3n+4 and g(n)=n³, which is true?",opts:["f(n)=O(g(n))","f(n)=Θ(g(g))","g(n)=O(f(n))","g(n)=Θ(f(n))"],ans:0,exp:"n² grew slower than n³. [cite: 1373]"},
+      {q:"Stack S: 4, 8, 12, 16 pushed. Current top?",opts:["4","16","36","28"],ans:1,exp:"The last pushed element is at the top. [cite: 1375]"},
+      {q:"How many vertices in a complete graph with n vertices?",opts:["n(n-1)/2","n(n+1)/2","2n","n"],ans:3,exp:"A graph Kn has n vertices. [cite: 1377]"},
+      {q:"Sum of minimum in-degree and maximum out-degree of a DAG:",opts:["Zero","Depends on graph","Greater than zero","None"],ans:1,exp:"This value varies based on the DAG structure. [cite: 1381]"},
+      {q:"Traversal of a graph is different than tree because:",opts:["Loops possible","DFS uses stack","Both","None"],ans:2,exp:"Graphs can have loops and multiple traversal starting points. [cite: 1383]"},
+      {q:"Why graph traversal is more difficult than tree traversal?",opts:["Tree is binary","Tree is undefined","Tree has root","All"],ans:2,exp:"Trees have a definitive root and hierarchy. [cite: 1385]"},
+      {q:"Worst case of insertion sort using binary search:",opts:["O(n log n)","O(n)","O(n²)","O(1)"],ans:2,exp:"Binary search helps comparisons but shifting is still O(n). [cite: 1387]"},
+      {q:"Correct while condition for insertion sort:",opts:["(j>0)||(arr[j-1]>value)","(j>0)&&(arr[j-1]>value)","(j>0)&&(arr[j+1]>value)","(j>0)&&(arr[j+1]<value)"],ans:1,exp:"Both index valid AND previous element larger. [cite: 1389]"},
+      {q:"Insertion sort steps for {9,7,4,2,1}:",opts:["7 9 4 2 1...","...","...","..."],ans:0,exp:"Each pass inserts the current element into its sorted position. [cite: 1391, 1392]"},
+      {q:"A connected planar graph with 6 vertices, 7 edges has ___ regions.",opts:["11","15","1","3"],ans:3,exp:"V - E + F = 2 → 6 - 7 + F = 2 → F = 3. [cite: 1394]"},
+      {q:"Insert 7, 4, 6, 1, 2, 3, 8, 5 into BST. Height?",opts:["4","3","7","2"],ans:0,exp:"BST height from this sequence is 4. [cite: 1396]"},
+      {q:"How many different trees possible with 10 nodes?",opts:["512","1024","1014","90"],ans:1,exp:"Standard exam answer for 10 nodes is 1024. [cite: 1398]"},
+      {q:"Minimum queues required to implement stack?",opts:["2","3","1","At least 3"],ans:0,exp:"Two queues simulate a stack. [cite: 1400]"},
+      {q:"Which of 8, 15, 13, 14 nodes could form a full binary tree?",opts:["8","15","13","14"],ans:1,exp:"15 = 2^4 − 1. [cite: 1402]"},
+      {q:"Memory use of an adjacency matrix is:",opts:["O(n)","O(n²)","O(n³)","O(log n)"],ans:1,exp:"An n×n matrix uses O(n²) space. [cite: 1404]"},
+      {q:"A polynomial can be represented in ___ by coefficient and exponent.",opts:["Array","Linked list","Queue","Stack"],ans:1,exp:"Linked lists are ideal for polynomials. [cite: 1406]"},
+      {q:"___ is used to convert infix to postfix.",opts:["Linked list","Stack","Queue","Tree"],ans:1,exp:"The shunting-yard algorithm uses a stack. [cite: 1408]"},
+      {q:"Which linked list does NOT store NULL in next field?",opts:["Singly linked list","Circular linked list","Doubly linked list","Linear List"],ans:1,exp:"Circular lists loop back to the start. [cite: 1410]"},
+      {q:"Circular queue is full only when:",opts:["FRONT=MAX-1 AND REAR=MAX-1","FRONT=0 AND REAR=MAX-1","FRONT=MAX-1 AND REAR=0","FRONT=0 AND REAR=0"],ans:1,exp:"FRONT=0 and REAR=MAX-1 is the standard full condition. [cite: 1412]"},
+      {q:"Which linked list contains pointers to next AND previous nodes?",opts:["Singly linked list","Circular linked list","Doubly linked list","All"],ans:2,exp:"Doubly linked list has both pointers. [cite: 1414]"},
+      {q:"Insertions done at one end, deletions from both ends:",opts:["Double-ended queue","Input restricted deque","Output restricted deque","Circular queue"],ans:1,exp:"This is an Input Restricted Deque. [cite: 1416]"},
+      {q:"A=2, B=3, C=4, D=5. Prefix: + - * A B C D",opts:["7","-3","5","3"],ans:1,exp:"Evaluation result is -3. [cite: 1418]"},
+      {q:"CURSOR_SPACE[p].next = CURSOR_SPACE[0].next; CURSOR_SPACE[0].next = p;",opts:["Allocates cursor space","Releases cursor space","Initializes cursor space","Declaration for cursor"],ans:0,exp:"This allocates space in a cursor-based linked list. [cite: 1421]"},
+      {q:"Which one is linear?",opts:["3n³+3n+7","3n²+3n+2","3n+1","8"],ans:2,exp:"3n+1 has degree 1. [cite: 1423]"},
+      {q:"Linear arrays AAA(5:50) and BBB(-5:10). Count elements:",opts:["50,18","46,16","46,18","50,16"],ans:1,exp:"AAA: 50-5+1=46. BBB: 10-(-5)+1=16. [cite: 1425]"},
+      {q:"A = {1, null, null, null, null, 10}. Normal vs Sparse size?",opts:["6 and 6","6 and 2","2 and 6","2 and 2"],ans:1,exp:"Normal=6, Sparse=2 (non-nulls). [cite: 1427]"},
+      {q:"if(isEmpty()) return -10; else {n=q[front]; front++; return n;}",opts:["Enqueue","Dequeue","Return front","Dequeue and return front"],ans:3,exp:"Removes element and returns value. [cite: 1429]"},
+      {q:"Deque with singly linked list: time to delete from REAR?",opts:["O(1)","O(n²)","O(n)","O(n log n)"],ans:2,exp:"Must traverse to second-to-last node. [cite: 1430]"},
+      {q:"Circular queue size=5, front=3, rear=4. Next insertion index?",opts:["5","0","1","2"],ans:1,exp:"(4+1)%5 = 0. [cite: 1432]"},
+      {q:"Which concept makes extensive use of arrays?",opts:["Binary trees","Scheduling","Caching","Spatial locality"],ans:3,exp:"Arrays exploit memory contiguity. [cite: 1433]"},
+      {q:"Which sequence CANNOT occur with push(0–9)?",opts:["4 3 2 1 0 9 8 7 6 5","4 6 8 7 5 3 2 9 0 1","2 5 6 7 4 8 9 3 1 0","4 3 2 1 0 5 6 7 8 9"],ans:1,exp:"Violates LIFO property. [cite: 1436]"},
+      {q:"Pending operation after recursive call makes it ___ recursive.",opts:["Direct recursive","Indirect recursive","Tail recursive","Non-tail recursive"],ans:3,exp:"Non-tail recursion has work left after return. [cite: 1437]"},
+      {q:"A node that can still reach a complete solution is:",opts:["Non-promising","Promising","Succeeding","Preceding"],ans:1,exp:"Promising nodes can lead to valid solutions. [cite: 1438]"},
+      {q:"Which is FALSE about a spanning tree?",opts:["Spans G","Subgraph of G","Includes every vertex","Can be cyclic or acyclic"],ans:3,exp:"Spanning trees must be acyclic. [cite: 1439]"},
+      {q:"Circular queue capacity n, front=rear=1 initially. Full condition:",opts:["front=rear","front=rear+1","front=rear+1","rear=front+1"],ans:1,exp:"Full when next rear is front. [cite: 1441]"},
+      {q:"Complete graph G with 4 vertices has ___ spanning trees.",opts:["15","8","16","13"],ans:2,exp:"Cayley’s formula: 4^(4-2) = 16. [cite: 1442]"},
+      {q:"Starts from vertex and visits every place connected to it then expands:",opts:["DFS","BFS","Prim's","Kruskal's"],ans:1,exp:"BFS explores layer by layer. [cite: 1445]"},
+      {q:"Which is NOT an application of Depth First Search?",opts:["Topological sort","Strongly Connected Components","Detecting cycles","Peer to Peer Networks"],ans:3,exp:"DFS is not used for P2P lookups. [cite: 1446]"},
+      {q:"Dijkstra's Algorithm CANNOT be applied on:",opts:["Directed weighted graphs","Graphs with negative weights","Unweighted graphs","Undirected unweighted graphs"],ans:1,exp:"Negative weights cause Dijkstra to fail. [cite: 1447]"},
+      {q:"char c[]=”VITEEE2022”; char *p=c; printf(“%s”,p+p[1]-p[3]);",opts:["EE2022","EEE2022","E2022","Error"],ans:1,exp:"'I'-'E' = 4; shift 4. [cite: 1448]"},
+      {q:"int s[5]; s++; Predict output:",opts:["1002","1004","1020","Error"],ans:3,exp:"Array names are non-modifiable. [cite: 1449]"},
+      {q:"int s[5]; printf('%d %d', s+1, &s+1);",opts:["1004 1020","1004 1004","1020 garbage","No compile"],ans:0,exp:"s+1 is 4 bytes; &s+1 is 20 bytes. [cite: 1450]"},
+      {q:"int arrayVal[]={5,8,12,14,18,19}; int *p=(int*)(&arrayVal+1); printf('%d', *(p-1));",opts:["12","5","19","18"],ans:2,exp:"p-1 is the last element (19). [cite: 1452]"},
+      {q:"int s[5]={1}; for(i=0;i<5;i++) printf('%d',arr[i]);",opts:["1 + garbage","1 0 0 0 0","1 1 1 1 1","0 0 0 0 0"],ans:1,exp:"Partial initialization zeros the rest. [cite: 1454]"},
+      {q:"int (*p)[5]; what does this represent?",opts:["Error","Pointer to 5 ints","Array of 5 pointers","Pointer to array of 5 ints"],ans:3,exp:"Points to an array of 5 integers. [cite: 1455]"},
+      {q:"if(Q!=empty) x=delete(Q); Function(Q); Insert(Q,x). Effect?",opts:["Reverse order","Unchanged","Front to rear","Emptied"],ans:0,exp:"Reverses the queue elements. [cite: 1457]"},
+      {q:"void test(int *ptr) { ptr=malloc... } test(ptr); *ptr=6;",opts:["May not work","Works and 6 printed"],ans:0,exp:"Pointer pass-by-value causes memory leak. [cite: 1459]"},
+      {q:"i is global, j local, k is malloced. Storage?",opts:["all stack","i,j stack, *k heap","i static, j stack, k heap","j static, i stack, *k heap"],ans:2,exp:"Global=static, Local=stack, malloc=heap. [cite: 1462]"},
+      {q:"int const * p=&num; ++(*p);",opts:["Compile error","Runtime error","6","5"],ans:0,exp:"Cannot increment a constant value. [cite: 1464]"},
+      {q:"int num=5; static int num1=num;",opts:["Compile error","Equal","Greater","Less"],ans:0,exp:"Static requires constant initializer. [cite: 1466]"},
+      {q:"static int number=1; if(val>=5) return val; val+=number; number++; return test(val); Value of test(1)?",opts:["5","6","7","8"],ans:2,exp:"1→2→4→7. [cite: 1468]"},
+      {q:"const int * p=&num; *p=100;",opts:["i=100","i=10","compile error","Runtime error"],ans:2,exp:"Cannot modify through pointer to const. [cite: 1469]"},
+      {q:"Output if part1(5) is called (mutual recursion):",opts:["53423122233445","53423120112233","53423122132435","53423120213243"],ans:0,exp:"Call sequence generates this output. [cite: 1471]"},
+      {q:"Catalan-style recurrence fun(5):",opts:["49","50","51","52"],ans:2,exp:"Result is 51. [cite: 1472]"},
+      {q:"fun(5) second recurrence:",opts:["49","50","51","52"],ans:2,exp:"Result is 51. [cite: 1473]"},
+      {q:"char str1[]='VIT', str2[]=' Chennai '; strcat(str1,str2);",opts:["VIT Chennai Chennai","VIT","VIT Chennai","Compilation Error"],ans:3,exp:"str1 has no space for cat. [cite: 1476]"},
+      {q:"Suitable for inserting in circular queue:",opts:["rear=rear+1","rear=rear-1","rear=(rear+1) mod SIZE","rear=rear mod SIZE+1"],ans:2,exp:"Wrap around using modulo. [cite: 1477]"},
+      {q:"char arr[]='function\\0'; int num=strlen(arr);",opts:["9","7","10","8"],ans:3,exp:"Length is 8 (before null). [cite: 1478]"},
+      {q:"int abc[2][] = {1, 2, 3, 4};",opts:["Valid","Invalid"],ans:1,exp:"Inner dimensions must be specified. [cite: 1479]"},
+      {q:"The loop prints string and its strlen:",opts:["length of string","strings with lengths","all strings","None"],ans:1,exp:"Prints string and length. [cite: 1480]"},
+      {q:"Structure in C is:",opts:["same type collection","different type collection","Elements are members","All"],ans:1,exp:"Collection of (possibly) different types. [cite: 1482]"},
+      {q:"strncat and strncmp function:",opts:["Append n/Compare n","Compare then append","None","None"],ans:0,exp:"Appends n chars / compares n chars. [cite: 1483]"},
+      {q:"Which about array and structure is correct?",opts:["Array same/Struct diff","Array name is pointer","Struct is user defined","All"],ans:3,exp:"All three properties are true. [cite: 1484]"},
+      {q:"Properly defined struct:",opts:["struct {int a;}","struct a_struct {int a;}","struct a_struct int a;","struct a_struct {int a;};"],ans:3,exp:"Tag, body, and semicolon required. [cite: 1486]"},
+      {q:"What is the output of 'structure hotel { ... } a;'?",opts:["TAJ","Empty string","Compiler error","None"],ans:2,exp:"Should be 'struct', not 'structure'. [cite: 1488]"},
+      {q:"while(i<5) arr[i]=++i; output?",opts:["1,2,3,4,5","Garbage, 1,2,3,4","0,1,2,3,4","2,3,4,5,6"],ans:0,exp:"Populates with 1,2,3,4,5. [cite: 1491]"},
+      {q:"Output of printf('%d %d',arr[-2],arr[11]);",opts:["0 0","Garbage 0","Garbage Garbage","Error"],ans:2,exp:"Out-of-bounds access returns garbage. [cite: 1492]"},
+      {q:"Which recurrence CANNOT be solved using Master method?",opts:["T(n)=2T(n/4)+n^0.51","T(n)=64T(n/8)-n²logn","T(n)=√2 T(n/2)+logn","T(n)=16T(n/4)+n!"],ans:3,exp:"n! is not a standard polynomial form. [cite: 1494]"},
+      {q:"Illegal array operations x: (I) ++x (II) x+1 (III) x++ (IV) x*2",opts:["I and II","I, II and III","I, III and IV","III and IV"],ans:2,exp:"Cannot increment arrays or multiply by scalar. [cite: 1496]"},
+      {q:"Right way to initialize array:",opts:["int num[6]={2,4...}","int n{}={...}","int n{6}={...}","int n(6)={...}"],ans:0,exp:"Standard brackets and braces. [cite: 1497]"},
+      {q:"How many stacks required to implement a queue?",opts:["1","2","3","4"],ans:1,exp:"Two stacks suffice. [cite: 1498]"},
+      {q:"char str[]='VIT\\0Chennai'; printf('%s',str);",opts:["VIT Chennai","Chennai","VIT\\0Chennai","VIT"],ans:3,exp:"Stops at first null. [cite: 1499]"},
+      {q:"char str[]={'V','I','T'}; printf('%s',str);",opts:["VIT","V","VIT\\0","None"],ans:3,exp:"Undefined because of no null terminator. [cite: 1501]"},
+      {q:"char str1[]='VIT'; char str2[20]; str2=str1;",opts:["VIT","VIT\\0","Compile Error","V"],ans:2,exp:"Cannot assign arrays directly. [cite: 1503]"},
+      {q:"str1='VIT', str2='Chennai', output of strcpy(str2,strcat(str1,str2)):",opts:["ChennaiVIT","Chennai","VIT Chennai","VIT"],ans:2,exp:"Concatenates then copies. [cite: 1505]"},
+      {q:"char str1[]='VIT', str2=' Chennai '; strcat(str1,str2); puts(str1);",opts:["VIT Chennai Chennai","VIT","VIT Chennai","Compilation Error"],ans:3,exp:"Insufficient space in str1. [cite: 1508]"},
+      {q:"arr={45,77,89,90,94,99,100}, key=99; mid values?",opts:["90 and 99","90 and 94","89 and 99","89 and 94"],ans:1,exp:"First mid=90, then mid=94. [cite: 1509]"},
+      {q:"Swaps to sort 5,1,4,3,2 in bubble sort:",opts:["10","9","8","7"],ans:3,exp:"7 swaps (equal to inversions). [cite: 1510]"}
+    ]
+  },
+  "Digital MP": {
+    color: "#22d3ae",
+    questions: [
+      {q:"How many minterms can be formed with two variable inputs?",opts:["Eight","Six","Five","Four"],ans:3,exp:"2^n = 2^2 = 4 minterms. [cite: 1512]"},
+      {q:"What JK levels toggle the switch?",opts:["J=0,K=0","J=1,K=0","J=0,K=1","J=1,K=1"],ans:3,exp:"J=K=1 causes toggle. [cite: 1513]"},
+      {q:"Flip-flops required for a divide-by-128 device?",opts:["1","4","6","7"],ans:3,exp:"128 = 2^7. [cite: 1514]"},
+      {q:"Interpreting unwanted signals on J and K while clock is HIGH:",opts:["Parity checking","Ones catching","Digital discrimination","Digital filtering"],ans:1,exp:"This hazardous signal interpretation is called ones catching. [cite: 1515]"},
+      {q:"How is the master enabled in a master-slave flip-flop?",opts:["When gate is LOW","When gate is HIGH","Both LOW and HIGH","None"],ans:1,exp:"Master enabled when gate/clock is HIGH. [cite: 1516]"},
+      {q:"Correct for a gated D flip-flop:",opts:["Output toggles if 1 input HIGH","Only 1 input HIGH at a time","Output complement follows input when enabled","Q follows D when enable HIGH"],ans:3,exp:"Q=D when enable is HIGH. [cite: 1519]"},
+      {q:"J-K flip-flop clock=20kHz in toggle mode — output frequency at Q?",opts:["Constantly LOW","Constantly HIGH","20 kHz square wave","10 kHz square wave"],ans:3,exp:"Divide-by-2 frequency: 10kHz. [cite: 1520]"},
+      {q:"Active-HIGH S-R latch: S=0, R=1, then R goes to 0.",opts:["SET","RESET","Clear","Invalid"],ans:1,exp:"R=1 resets; stays reset when R=0. [cite: 1521]"},
+      {q:"MOD-32 counter flip-flops required?",opts:["3","45","5","6"],ans:2,exp:"32 = 2^5. [cite: 1522]"},
+      {q:"Synchronous counters eliminate delay because:",opts:["Pulses to 1st and last only","Pulses to last only","Pulses not used","Clock applied simultaneously to each stage"],ans:3,exp:"Simultaneous clocking prevents ripple. [cite: 1523]"},
+      {q:"Minimum NAND gates for X+XY’+XY’Z:",opts:["one","Two","Three","None"],ans:0,exp:"Simplifies to X. [cite: 1524]"},
+      {q:"Tabulation method starts by specifying function as:",opts:["List of minterms","List of maxterms","List of integers","List of terms"],ans:0,exp:"Quine-McCluskey starts with minterms. [cite: 1525]"},
+      {q:"2-bit comparator, A > B. Combination count?",opts:["2","4","6","8"],ans:2,exp:"6 combinations (e.g., 3>2, 3>1, etc.). [cite: 1527]"},
+      {q:"Gates best suited for parity checking/generation:",opts:["AND,OR,NOT","EX-NOR or EX-OR","NAND","NOR"],ans:1,exp:"XOR/XNOR are parity gates. [cite: 1528]"},
+      {q:"Code also known as reflected code:",opts:["Excess-3","Gray code","BCD","Error code"],ans:1,exp:"Gray code is reflected binary. [cite: 1529]"},
+      {q:"'-5' in 8-bit 2's complement hex:",opts:["FB","7F","FF","FA"],ans:0,exp:"FB in hexadecimal. [cite: 1531]"},
+      {q:"A decoder converts:",opts:["Decimal to binary","Binary to specific output","Prevent improper op","Computer talk"],ans:1,exp:"Binary input activates 1 of n outputs. [cite: 1534]"},
+      {q:"Correct for gated D-type flip-flop:",opts:["Q SET/RESET immediately","Output complement follows input when enabled","Only one input HIGH","Output toggles if input HIGH"],ans:1,exp:"Q̄ follows D' when enabled. [cite: 1535]"},
+      {q:"Labeling code in K-map:",opts:["8-4-2-1 binary","Hexadecimal","Gray","Octal"],ans:2,exp:"Gray code labeling. [cite: 1536]"},
+      {q:"8-bit 1's complement range:",opts:["-256 to 256","-256 to 255","-127 to 127","-128 to 127"],ans:2,exp:"-(2^7-1) to +(2^7-1). [cite: 1539]"},
+      {q:"Gray code for binary 101011:",opts:["101011","111110","011111","110101"],ans:1,exp:"Binary 101011 → Gray 111110. [cite: 1540]"},
+      {q:"1-of-32 decoder using 3-to-8 line decoders:",opts:["1","2","4","8"],ans:3,exp:"Needs 8 decoders. [cite: 1542]"},
+      {q:"BCD 0001 0010 0110 in binary:",opts:["1111110","1111000","1111101","1111111"],ans:0,exp:"Decimal 126 = Binary 1111110. [cite: 1544]"},
+      {q:"8 doors in automated theatre. Minimum switches?",opts:["1","2","3","4"],ans:2,exp:"2^3 = 8. [cite: 1546]"},
+      {q:"4-bit comparator, A=1011, B=1010:",opts:["A>B=1,A<B=0,A<B=1","A>B=0,A<B=1,A=B=0","A>B=1,A<B=0,A=B=0","A>B=0,A<B=1,A=B=1"],ans:2,exp:"11 > 10. [cite: 1547, 1548]"}
+    ]
+  },
+  "Operating Systems": {
+    color: "#a78bfa",
+    questions: [
+      {q:"What is an operating system?",opts:["interface between hardware/apps","manages resources","service provider","All"],ans:3,exp:"An OS acts as an interface, resource manager, and service provider."},
+      {q:"Which one of the following is not a real time OS?",opts:["RTLinux","Palm OS","QNX","VxWorks"],ans:1,exp:"Palm OS is a general-purpose/mobile OS, not a real-time OS."},
+      {q:"In the non blocking send:",opts:["keeps sending until received","sends and resumes","keeps sending until signal","none"],ans:1,exp:"In non-blocking send, the sender continues execution immediately after sending."},
+      {q:"In the Zero capacity queue:",opts:["stores at least 1","sender blocks until received","messages don't wait","none"],ans:2,exp:"In zero-capacity queues, messages are not buffered and do not wait in the queue."},
+      {q:"The Zero Capacity queue:",opts:["message system with buffering","message system with no buffering","referred to as a link","none"],ans:1,exp:"Zero-capacity queue means no buffering is available."},
+      {q:"Bounded and Unbounded capacity queues are:",opts:["Programmed buffering","Automatic buffering","User defined","No buffering"],ans:1,exp:"Both bounded and unbounded queues fall under automatic buffering."},
+      {q:"Process on different systems communicating via messages:",opts:["LPC","IPC","RPC","RMI"],ans:2,exp:"RPC (Remote Procedure Call) allows a process on one machine to invoke procedures on another machine."},
+      {q:"Initial program run at power up:",opts:["boot program","bootloader","initializer","bootstrap program"],ans:3,exp:"The bootstrap program initializes the system and loads the OS."},
+      {q:"What is a trap/exception?",opts:["hardware error interrupt","software error interrupt","user error interrupt","none"],ans:1,exp:"A trap/exception is a software-generated interrupt caused by an error or exception."},
+      {q:"In a memory mapped input/output:",opts:["polling to watch bit","write data byte to register","receive interrupt when ready","CPU runs user code"],ans:1,exp:"CPU writes data and sets a bit in the control register to signal byte availability."},
+      {q:"Which module gives CPU control to selected process?",opts:["dispatcher","interrupt","scheduler","none"],ans:0,exp:"The dispatcher hands over CPU control to the process selected by the short-term scheduler."},
+      {q:"Processes in main memory ready to execute:",opts:["job queue","ready queue","execution queue","process queue"],ans:1,exp:"The ready queue contains processes residing in main memory waiting to execute."},
+      {q:"What does OS X have?",opts:["monolithic with modules","microkernel","monolithic","hybrid kernel"],ans:3,exp:"macOS (OS X) uses the XNU hybrid kernel."},
+      {q:"Submission to completion time interval:",opts:["waiting time","turnaround time","response time","throughput"],ans:1,exp:"Turnaround time is the total interval from process submission to completion."},
+      {q:"Algorithm allocating CPU to first requester:",opts:["FCFS","SJF","Priority","none"],ans:0,exp:"First-Come, First-Served (FCFS) serves processes in the order they arrive."},
+      {q:"In priority scheduling algorithm:",opts:["highest priority","lowest priority","equal not scheduled","none"],ans:0,exp:"The CPU is allocated to the process with the highest priority."},
+      {q:"New process priority compared with:",opts:["all","running","parent","init"],ans:1,exp:"In preemptive priority scheduling, the new process priority is compared with the currently running process."},
+      {q:"Algorithm defined by Time quantum:",opts:["SJF","Round Robin","Priority","Multilevel Queue"],ans:1,exp:"Round Robin scheduling uses a fixed time quantum for process switching."},
+      {q:"Processes classified into groups in:",opts:["SJF","Round Robin","Priority","Multilevel Queue"],ans:3,exp:"Multilevel queue scheduling divides processes into separate categories or groups."},
+      {q:"In multilevel feedback scheduling:",opts:["can move queues","permanent classification","not classified","none"],ans:0,exp:"Multilevel feedback queues allow processes to move between different ready queues."},
+      {q:"Which CANNOT be scheduled by kernel?",opts:["kernel level thread","user level thread","process","none"],ans:1,exp:"User-level threads are managed in user space and are not directly scheduled by the kernel."},
+      {q:"CPU scheduling is the basis of:",opts:["multiprocessor","multiprogramming","large memory","none"],ans:1,exp:"Multiprogramming operating systems depend on CPU scheduling to share the CPU effectively."},
+      {q:"With multiprogramming ___ is used productively:",opts:["time","space","money","all"],ans:0,exp:"Multiprogramming ensures the CPU time is used productively by keeping it busy."},
+      {q:"In operating system, each process has its own:",opts:["open files","alarms/signals","address space","all"],ans:3,exp:"Each process maintains its own address space, open files, and signal handlers."},
+      {q:"Two steps of process execution:",opts:["I/O & OS","CPU & I/O Burst","Memory & I/O","OS & Memory"],ans:1,exp:"Process execution typically alternates between CPU bursts and I/O bursts."},
+      {q:"An I/O bound program typically has:",opts:["few short CPU","many short I/O","many short CPU","few short I/O"],ans:2,exp:"I/O-bound programs spend most of their time waiting for I/O and have many short CPU bursts."},
+      {q:"Process selected from ___ by ___ scheduler:",opts:["blocked, short","wait, long","ready, short term","I/O bursts"],ans:2,exp:"The short-term scheduler selects a process from the ready queue for execution."},
+      {q:"Non – preemptive scheduling occurs when:",opts:["running to ready","running to waiting","waiting to ready","All"],ans:1,exp:"Non-preemptive scheduling happens when a process voluntarily enters a waiting state."},
+      {q:"Switching CPU from one to another:",opts:["process switch","task switch","context switch","all"],ans:2,exp:"A context switch involves saving the state of one process and loading another."},
+      {q:"Dispatch latency is:",opts:["speed running to ready","time running to ready idle","time to stop and start another","none"],ans:2,exp:"Dispatch latency is the time taken to stop one process and start running another one."},
+      {q:"Scheduling is done to:",opts:["increase CPU util","decrease CPU util","keep CPU idle","none"],ans:0,exp:"The goal of scheduling is to maximize CPU utilization."},
+      {q:"What is Turnaround time?",opts:["total waiting time","total ready queue time","total running queue time","time from submission to completion"],ans:3,exp:"Turnaround time = completion time − arrival time."},
+      {q:"Scheduling is done so as to:",opts:["increase turnaround","decrease turnaround","keep same","no relation"],ans:1,exp:"Effective scheduling algorithms aim to decrease the turnaround time."},
+      {q:"What is Waiting time?",opts:["time in blocked/wait","time in ready queue","time in running queue","time from completion to submission"],ans:1,exp:"Waiting time is the total duration a process spends waiting in the ready queue."},
+      {q:"Timeshare process after time slot expires:",opts:["Suspended","Terminated","Ready state","Blocked"],ans:2,exp:"After the time quantum expires, a process is preempted and moved to the ready state."},
+      {q:"Scheduling is done so as to:",opts:["increase waiting","same waiting","decrease waiting","none"],ans:2,exp:"A primary goal of scheduling is to decrease the overall waiting time."},
+      {q:"What is Response time?",opts:["submission to completion","submission to first response","submission to output","none"],ans:1,exp:"Response time is measured from process submission until the first response is produced."},
+      {q:"Round robin scheduling is:",opts:["Non-preemptive","Preemptive","All","None"],ans:1,exp:"Round Robin is a preemptive algorithm using time slices."},
+      {q:"Large time slice Round Robin becomes:",opts:["FCFS","Small slices FCFS","Small slices high perf","Small slices SJF"],ans:0,exp:"If the time quantum is sufficiently large, Round Robin behaves exactly like FCFS."},
+      {q:"Portion of scheduler that dispatches processes:",opts:["assigning ready to CPU","assigning ready to wait","assigning running to blocked","all"],ans:0,exp:"The dispatcher is responsible for assigning a ready process to the CPU."},
+      {q:"What is FIFO algorithm?",opts:["last in first out","first in first out","minimal processor first","max processor first"],ans:1,exp:"FIFO (First-In, First-Out) executes jobs in the order they entered the queue."},
+      {q:"Temporarily suspending logically runnable processes is:",opts:["Non preemptive","Preemptive scheduling","SJF","FCFS"],ans:1,exp:"Preemptive scheduling can temporarily suspend a process that is still runnable."},
+      {q:"Complex scheduling algorithms:",opts:["very large computers","minimal resources","use many resources","all"],ans:2,exp:"Complex schedulers generally require more system resources/overhead."},
+      {q:"What is FIFO algorithm?",opts:["last in first out","first in first out","minimal processor first","max processor first"],ans:1,exp:"FIFO is synonymous with First-Come, First-Served (FCFS)."},
+      {q:"Temporarily suspending logically runnable processes is:",opts:["Non preemptive","Preemptive scheduling","SJF","FCFS"],ans:1,exp:"Preemptive scheduling allows the OS to interrupt a running process before it finishes."},
+      {q:"Cascading termination refers to child processes if parent terminates:",opts:["Normally or abnormally","Abnormally","Normally","None"],ans:1,exp:"Cascading termination is usually triggered by the abnormal termination of the parent."},
+      {q:"Best quantum for 10ms processes for small response:",opts:["15ms","40ms","45ms","50ms"],ans:0,exp:"For a short runtime like 10ms, a small quantum (15ms) provides the best response time."},
+      {q:"Orders processed in arrival sequence use:",opts:["due date","slack time","first come, first served","critical ratio"],ans:2,exp:"The FCFS rule sequences jobs exactly in the order they arrive."},
+      {q:"Multiprogramming turnaround for short vs long jobs:",opts:["Lengthened; Shortened","Shortened; Lengthened","Shortened; Shortened","Shortened; Unchanged"],ans:1,exp:"Multiprogramming usually shortens turnaround for short jobs but may lengthen it for long ones."},
+      {q:"I. SRTF starve II. Preemptive starve III. RR better response. TRUE?",opts:["I Only","I and III","II and III","All"],ans:3,exp:"All statements accurately describe standard scheduling behaviors."},
+      {q:"The real difficulty with SJF is:",opts:["too good","knowing length of next CPU request","too complex","none"],ans:1,exp:"SJF requires knowing future burst lengths, which is difficult to predict."},
+      {q:"FCFS algorithm is troublesome for:",opts:["time sharing","multiprogramming","multiprocessor","operating systems"],ans:0,exp:"FCFS is problematic for time-sharing systems due to high response times."},
+      {q:"SJF waiting time for P1 (6ms) with P2=8, P3=7, P4=3:",opts:["3ms","0ms","16ms","9ms"],ans:0,exp:"With SJF, order is P4(3), P1(6)... so P1 waits 3ms."},
+      {q:"An SJF algorithm is a priority algorithm where priority is:",opts:["predicted burst","inverse of predicted burst","current burst","user wants"],ans:1,exp:"Priority is inversely related to burst time (shorter burst = higher priority)."},
+      {q:"Solution to indefinite blockage of low-priority processes:",opts:["Starvation","Wait queue","Ready queue","Aging"],ans:3,exp:"Aging gradually increases a process's priority to ensure it eventually runs."},
+      {q:"i) SRTF starve ii) Preemptive starve iii) RR better than FCFS. TRUE?",opts:["I only","I and III","II and III","I, II, and III"],ans:3,exp:"Starvation is possible in SRTF and priority/preemptive systems; RR is better for response."},
+      {q:"Service completed for a process in 'Blocked' state, it goes to:",opts:["Terminated","Suspended","Running","Ready state"],ans:3,exp:"Once I/O is finished, the process moves from waiting to the ready state."},
+      {q:"Mutual exclusion implies that:",opts:["no other in CS","others must be in CS","all resources blocked","none"],ans:0,exp:"Only one process is allowed to execute in its critical section at a time."},
+      {q:"Bounded waiting implies a bound on entry into CS:",opts:["after request and before grant","while another in CS","before request made","none"],ans:0,exp:"There is a limit on how many other processes can enter after a request has been made."},
+      {q:"Minimum variables shared between processes to solve CS:",opts:["1","2","3","4"],ans:0,exp:"At least one shared variable is required to synchronize access."},
+      {q:"How many times will P0 print ‘0’?",opts:["At least twice","Exactly twice","Exactly thrice","Exactly once"],ans:0,exp:"P0 can repeat because P1/P2 signal S0 back, so it prints at least twice."},
+      {q:"Max processes in CS if P10 uses V(mutex) instead of P(mutex):",opts:["1","2","3","None"],ans:3,exp:"Using V(mutex) incorrectly before CS allows multiple processes to enter concurrently."},
+      {q:"P1, P2 construct using flags statement TRUE:",opts:["no mutual exclusion","no bounded waiting","strict alternation","no deadlock prevention"],ans:3,exp:"The provided construct ensures mutual exclusion but can lead to deadlocks."},
+      {q:"Semaphore solve CS problem:",opts:["after process","periodically","atomically","none"],ans:2,exp:"Semaphore wait and signal operations must be executed atomically."},
+      {q:"Two atomic operations permissible on semaphores:",opts:["wait and signal","stop and wait","hold and wait","none"],ans:0,exp:"The two fundamental semaphore operations are wait(P) and signal(V)."},
+      {q:"Common variable X=5. Different final X values possible:",opts:["2","3","4","8"],ans:2,exp:"Different interleavings can produce 4 distinct final values (6, 10, 11, 12)."},
+      {q:"Binary semaphore T=0, X=5. Different final X values:",opts:["1","2","3","4"],ans:0,exp:"The semaphore forces sequential execution, so X will always be 11."},
+      {q:"Transient operating system code is code that:",opts:["always in memory","never in memory","comes and goes as needed","not accessible"],ans:2,exp:"Transient code is swapped in and out of memory as required."},
+      {q:"Process executes signal(mutex); CS; wait(mutex); Result:",opts:["deadlock","starve","several in CS","all"],ans:2,exp:"Executing signal before entry allows multiple processes into the critical section."},
+      {q:"Process executes wait(mutex); CS; wait(mutex); Result:",opts:["deadlock","starve","several in CS","all"],ans:0,exp:"A second wait on the same mutex will block the process forever, causing deadlock."},
+      {q:"P1/P2 method properties achieved:",opts:["Mutual/not progress","Progress/not mutual","Neither","Both"],ans:3,exp:"Properly implemented synchronization provides both mutual exclusion and progress."},
+      {q:"What is a reusable resource?",opts:["one process at a time/not depleted","used by more than one","shared between threads","none"],ans:0,exp:"Reusable resources like CPU or memory are not consumed when used."},
+      {q:"System is in safe state if:",opts:["allocate to avoid deadlock","exists safe sequence","all","none"],ans:2,exp:"A system is safe if it can find a safe sequence to allocate resources."},
+      {q:"Circular wait condition prevented by:",opts:["linear ordering","using thread","using pipes","all"],ans:0,exp:"Assigning a linear order to resource types prevents circular dependencies."},
+      {q:"Process perpetually denied necessary resources is called:",opts:["deadlock","starvation","inversion","aging"],ans:1,exp:"Starvation is the indefinite postponement of a process waiting for resources."},
+      {q:"To avoid deadlock:",opts:["fixed resources","allocation once","abort deadlocked","inversion technique"],ans:3,exp:"Resource ordering/inversion techniques are used to prevent deadlock cycles."},
+      {q:"The request and release of resources are:",opts:["command line","interrupts","system calls","special programs"],ans:2,exp:"Resource operations are handled by the OS through system calls."},
+      {q:"Multithreaded programs are:",opts:["less prone to deadlock","more prone to deadlock","not at all prone","none"],ans:1,exp:"Increased complexity in multithreading often leads to higher deadlock risks."},
+      {q:"Portion of scheduler that dispatches processes:",opts:["ready processes to wait","running to blocked","ready processes to CPU","all"],ans:2,exp:"The dispatcher assigns a process from the ready queue to the CPU."},
+      {q:"For Mutual exclusion to prevail in the system:",opts:["at least 1 non-sharable","uniprocessor only","at least 1 sharable","all"],ans:0,exp:"Mutual exclusion requires at least one resource to be non-shareable."},
+      {q:"For a Hold and wait condition to prevail:",opts:["waiting without holding","holding one/waiting for more","holding/not waiting","None"],ans:1,exp:"Hold-and-wait means a process holds resources while requesting others."},
+      {q:"Deadlock prevention ensures:",opts:["1 condition cannot hold","all conditions don't hold","decide if granted","recover"],ans:0,exp:"Prevention works by ensuring at least one of the four necessary conditions cannot occur."},
+      {q:"For sharable resources, mutual exclusion:",opts:["is required","is not required","maybe required","none"],ans:1,exp:"Sharable resources do not require exclusive access."},
+      {q:"Disadvantage of pre-allocating all resources:",opts:["Low CPU util","Low resource utilization","high resource util","None"],ans:1,exp:"Allocating resources long before use leads to low resource utilization."},
+      {q:"If request cannot be immediately allocated, hold-and-wait removal ensures:",opts:["process waits","keeps sending","resumes","all held are preempted"],ans:3,exp:"If a request fails, the process must release its currently held resources."},
+      {q:"To avoid future deadlock, the system considers:",opts:["available","previous","currently allocated","future requests/releases"],ans:3,exp:"Deadlock avoidance requires knowledge of future maximum resource needs."},
+      {q:"A priori knowledge for deadlock-free system:",opts:["minimum","average","maximum number","approximate"],ans:2,exp:"The maximum number of each resource type needed must be known (Banker's Algorithm)."},
+      {q:"Deadlock avoidance dynamically examines ___ to prevent circular wait:",opts:["resource allocation state","system storage state","OS","resources"],ans:0,exp:"The OS monitors the current allocation state to ensure safety."},
+      {q:"System is in a safe state only if there exists a:",opts:["safe allocation","safe resource","safe sequence","all"],ans:2,exp:"A safe state is defined by the existence of a safe sequence."},
+      {q:"FCFS algorithm is troublesome for:",opts:["operating systems","multiprocessor","time sharing systems","multiprogramming"],ans:2,exp:"FCFS causes poor response times in interactive/time-sharing environments."},
+      {q:"12 drives, P0, P1, P2. Safe sequence:",opts:["P0, P1, P2","P1, P2, P0","P2, P0, P1","P1, P0, P2"],ans:3,exp:"P1, P0, P2 allows all processes to finish given the tape count."},
+      {q:"Resource allocation graph not applicable with:",opts:["multiple instances","single instance","single & multiple","none"],ans:0,exp:"Simple RAG cycles only indicate deadlock for single-instance resources."},
+      {q:"Banker’s algorithm is ___ than resource allocation graph:",opts:["less efficient","more efficient","equal","none"],ans:1,exp:"Banker's is generally more efficient for systems with multiple resource instances."},
+      {q:"Sequence <P1, P3, P4, P2, P0> leads system to:",opts:["unsafe state","safe state","protected state","deadlock"],ans:1,exp:"This sequence is a valid safe path in the classic Banker's example."},
+      {q:"Wait-for graph is applicable when:",opts:["single instance","multiple instance","multiple instance","all"],ans:0,exp:"Wait-for graphs are used for deadlock detection in single-instance systems."},
+      {q:"Edge from Pi to Pj in wait-for graph indicates:",opts:["Pi waiting for Pj","Pi waiting for Pj","multiple instance","all"],ans:0,exp:"The edge Pi → Pj means Pi is waiting for a resource held by Pj."},
+      {q:"If wait-for graph contains a cycle:",opts:["no deadlock","deadlock exists","deadlock exists","depends"],ans:1,exp:"A cycle in a wait-for graph is a definitive indicator of deadlock."},
+      {q:"If deadlocks occur frequently, detection must be invoked:",opts:["rarely","frequently","rarely & frequently","none"],ans:1,exp:"Frequent deadlocks require frequent checking to minimize throughput loss."},
+      {q:"Check for deadlock:",opts:["fixed intervals","every request","every request at fixed intervals","none"],ans:2,exp:"The frequency depends on system performance trade-offs (intervals or requests)."},
+      {q:"Main function of command interpreter:",opts:["interface API/app","handle files","get and execute next command","None"],ans:2,exp:"The shell/interpreter reads and executes user-specified commands."},
+      {q:"Deadlock avoidance dynamically examines:",opts:["OS","resources","system storage","resource allocation state"],ans:3,exp:"Avoidance algorithms check the current allocation state before granting resources."},
+      {q:"Swapping ___ when process has pending I/O:",opts:["must never","maybe","can","must"],ans:0,exp:"Swapping is generally prohibited if a process has active I/O pending."},
+      {q:"Main memory accommodates:",opts:["cpu","user processes","OS","all"],ans:3,exp:"Memory holds the OS, user programs, and data."},
+      {q:"Operating system is responsible for:",opts:["bad-block recovery","booting from disk","disk initialization","all"],ans:3,exp:"The OS handles block management, booting, and initial disk setup."},
+      {q:"Protected from modification by running process because:",opts:["checked against relocation/limit","protection algorithm","different memory spaces","different logical addresses"],ans:0,exp:"Hardware checks every memory access against base and limit registers."},
+      {q:"Using transient code ___ the OS size:",opts:["maintains","changes","increases","decreases"],ans:3,exp:"Transient code reduces the memory footprint of the resident OS."},
+      {q:"OS keeps track of frames in a ___ table:",opts:["memory","mapping","page","frame table"],ans:3,exp:"The frame table tracks the status and allocation of physical memory frames."},
+      {q:"For implementing dynamic loading:",opts:["OS essential","Hardware required","user programs implement","Hardware/OS essential"],ans:2,exp:"Dynamic loading can be managed by user programs without special OS/hardware support."},
+      {q:"___ presents a uniform device-access interface:",opts:["Device drivers","I/O systems","Devices","Buses"],ans:0,exp:"Device drivers standardize how the OS interacts with varying hardware."},
+      {q:"In real time operating system:",opts:["sched only once","same priority","no kernel","task serviced by deadline"],ans:3,exp:"In RTOS, the primary requirement is meeting task deadlines."},
+      {q:"In Operating Systems, which is/are CPU scheduling algorithms?",opts:["Priority","Round Robin","Shortest Job First","All"],ans:3,exp:"All three are fundamental CPU scheduling strategies."},
+      {q:"Hard RTOS has ___ jitter than soft RTOS:",opts:["equal","more","less","none"],ans:2,exp:"Hard RTOS must minimize timing variation (jitter)."},
+      {q:"For real time OS, interrupt latency should be:",opts:["zero","minimal","maximum","dependent"],ans:1,exp:"RTOS requires minimal latency to respond to events quickly."},
+      {q:"Which one is a real time operating system?",opts:["Windows CE","RTLinux","VxWorks","All"],ans:3,exp:"Windows CE, RTLinux, and VxWorks are all recognized RTOSs."},
+      {q:"Priority will ___ if scheduler assigns static priority:",opts:["depends on OS","change","remains unchanged","none"],ans:2,exp:"Static priorities do not change during process execution."},
+      {q:"Working set sizes exceed total available frames:",opts:["selects process to suspend","system crashes","process crashes","memory overflows"],ans:0,exp:"The OS suspends a process to prevent excessive thrashing."},
+      {q:"Information about all files is kept in:",opts:["OS","separate directory structure","swap space","none"],ans:1,exp:"Metadata for files is stored in the directory structure."},
+      {q:"Small table containing info about open files:",opts:["file table","directory table","open-file table","system table"],ans:2,exp:"The open-file table tracks all files currently in use."},
+      {q:"What happens in single level directory?",opts:["all files in same directory","different directories/same level","depends on OS","None"],ans:0,exp:"In a single-level directory, every file is stored in one flat list."},
+      {q:"OS ___ links when traversing to preserve acyclic structure:",opts:["deletes","considers","ignores","none"],ans:2,exp:"The OS ignores certain links to avoid infinite loops in a directory tree."},
+      {q:"Decision to load a particular OS in multi-boot:",opts:["PCB","FCB","boot loader","bootstrap"],ans:2,exp:"The boot loader manages the selection of which OS to boot."},
+      {q:"Interface provided to access OS services:",opts:["Library","System Calls","Assembly instructions","API"],ans:3,exp:"APIs provide the high-level interface to OS services via system calls."},
+      {q:"Program that initializes all aspects of system:",opts:["bootstrap program","main","bootloader","rom"],ans:0,exp:"The bootstrap program performs initial hardware setup and loads the kernel."},
+      {q:"Network operating system runs on:",opts:["every system","server","both","none"],ans:1,exp:"Network OSs are typically hosted on servers to manage shared resources."},
+      {q:"Types of distributed operating systems:",opts:["Zone based","Level based","Network Operating system","All"],ans:2,exp:"Network Operating Systems are a standard type in this category."},
+      {q:"Systems allowing only one process execution:",opts:["uniprogramming systems","uniprocessing","unitasking","none"],ans:0,exp:"Uniprogramming systems run one program at a time in memory."},
+      {q:"In operating system, each process has its own:",opts:["address space/global variables","open files","alarms/signals","all"],ans:3,exp:"Processes isolate their memory, files, and signals from others."},
+      {q:"A process can be terminated due to:",opts:["normal exit","fatal error","killed by another","all"],ans:3,exp:"Processes terminate for variety of reasons: success, error, or external signal."},
+      {q:"Ready state of a process:",opts:["scheduled after execution","unable to run until task","using CPU","none"],ans:0,exp:"Ready means the process is waiting only for CPU time to run."},
+      {q:"Interprocess communication is:",opts:["within process","between two process","between threads","none"],ans:1,exp:"IPC is communication between distinct processes."},
+      {q:"A set of processes is deadlock if:",opts:["each blocked forever","each terminated","trying to kill each other","None"],ans:0,exp:"Deadlock occurs when every process is waiting for another forever."},
+      {q:"A process stack does not contain:",opts:["Function parameters","Local variables","Return addresses","PID of child process"],ans:3,exp:"Child PIDs are typically stored in the process table, not the stack."},
+      {q:"CPU scheduling is the basis of:",opts:["multiprogramming OS","larger memory systems","multiprocessor","none"],ans:0,exp:"CPU scheduling allows multiprogramming by switching between jobs."},
+      {q:"System call to determine child termination:",opts:["wait","exit","fork","get"],ans:0,exp:"A parent uses wait() to synchronize with child termination."},
+      {q:"Address of next instruction provided by:",opts:["CPU registers","Program counter","Process stack","Pipe"],ans:1,exp:"The Program Counter (PC) tracks the next instruction to execute."},
+      {q:"A Process Control Block (PCB) does not contain:",opts:["Code","Stack","Bootstrap Program","Data"],ans:2,exp:"The bootstrap program is used only during startup, not stored in the PCB."},
+      {q:"Processes completed per unit time:",opts:["Output","Throughput","Efficiency","Capacity"],ans:1,exp:"Throughput measures the system's ability to finish jobs over time."},
+      {q:"State of a process is defined by:",opts:["current activity","final activity","just executed","next to be executed"],ans:0,exp:"The process state describes what the process is doing at this moment."},
+      {q:"Which is not the state of a process?",opts:["New","Old","Waiting","Running"],ans:1,exp:"'Old' is not a standard lifecycle state in process management."},
+      {q:"What is a Process Control Block?",opts:["Process type variable","Data Structure","secondary storage","Block in memory"],ans:1,exp:"The PCB is the data structure the OS uses to manage process information."},
+      {q:"Entry of all PCBs of current processes is in:",opts:["Process Register","Program Counter","Process Table","Process Unit"],ans:2,exp:"The Process Table is the central directory for all active PCBs."},
+      {q:"What is the degree of multiprogramming?",opts:["per unit time","in ready queue","in I/O queue","number in memory"],ans:3,exp:"It is the total number of processes currently residing in main memory."},
+      {q:"A single thread of control allows:",opts:["only one task at a time","multiple tasks","only two tasks","all"],ans:0,exp:"A single thread executes a single sequence of instructions."},
+      {q:"Which one is not true?",opts:["kernel remains in memory","modules cannot load in running OS","first part loaded","central core"],ans:1,exp:"Modern OS kernels are modular and can load/unload drivers while running."},
+      {q:"Objective of multiprogramming:",opts:["running at all time","programs waiting in queue","increase CPU utilization","None"],ans:2,exp:"The primary goal is to maximize CPU utilization by keeping it busy."},
+      {q:"Which does not belong to queues for processes?",opts:["Job Queue","PCB Queue","Device Queue","Ready Queue"],ans:1,exp:"Process information is kept in job, ready, and device queues."},
+      {q:"When process issues I/O request:",opts:["placed in I/O queue","placed in waiting queue","placed in ready queue","placed in Job queue"],ans:0,exp:"Processes waiting for I/O are held in the device/IO queue."},
+      {q:"What happens when a process terminates?",opts:["removed from all queues","removed except job","PCB de-allocated","PCB never de-allocated"],ans:2,exp:"Termination leads to the eventual de-allocation of the process's PCB."},
+      {q:"What is a long-term scheduler?",opts:["selects for ready queue","allocates CPU","remove by swapping","None"],ans:0,exp:"The long-term scheduler controls which jobs enter the system/memory."},
+      {q:"If all processes I/O bound, ready queue almost:",opts:["full, little","full, lot","empty, little","empty, lot"],ans:2,exp:"I/O-bound jobs stay in wait queues, leaving the ready queue empty."},
+      {q:"What is a medium-term scheduler?",opts:["brings to ready queue","allocates CPU","remove by swapping","None"],ans:2,exp:"Medium-term scheduling involves swapping processes in and out of memory."},
+      {q:"What is a short-term scheduler?",opts:["brings to ready queue","allocates CPU","remove by swapping","None"],ans:1,exp:"The short-term scheduler decides which ready process to execute next."},
+      {q:"Distinction between short term and long term:",opts:["queue length","process type","frequency of execution","None"],ans:2,exp:"Short-term schedulers run much more frequently than long-term ones."},
+      {q:"Transition initiated by user process itself:",opts:["block","wakeup","dispatch","none"],ans:0,exp:"A process blocks itself when it needs to wait for an event like I/O."},
+      {q:"Error handled by operating system:",opts:["lack of paper","network failure","power failure","all"],ans:3,exp:"The OS mediates hardware/software errors for the user."},
+      {q:"Timeshare quantum completed, process goes to:",opts:["Blocked state","Ready state","Suspended","Suspended"],ans:1,exp:"Preemption moves the process back to the ready queue."},
+      {q:"In multiprogramming environment:",opts:["executes more than one at once","developed by many","more than one in memory","user executes many"],ans:2,exp:"Multiprogramming keeps multiple processes in memory simultaneously."},
+      {q:"Service completed for 'Blocked' process, it goes to:",opts:["Running","Ready state","Suspended","Terminated"],ans:1,exp:"Once the wait is over, the process becomes ready to run again."},
+      {q:"Context in PCB does not contain:",opts:["CPU registers","process state","memory info","context switch time"],ans:3,exp:"PCB stores process context, not performance metrics like switch time."},
+      {q:"Need not be saved on context switch:",opts:["registers","Translation lookaside buffer","Program counter","All"],ans:1,exp:"The TLB is often flushed or uses tags rather than being saved in the PCB."},
+      {q:"Does not interrupt a running process:",opts:["device","timer","Scheduler process","Power Failure"],ans:2,exp:"The scheduler is software that runs after an interrupt; it is not the interrupt itself."},
+      {q:"Process affected by others executing:",opts:["cooperating process","child process","parent process","init process"],ans:0,exp:"Cooperating processes share data and can impact each other."},
+      {q:"Outcome depends on access order:",opts:["dynamic","race condition","essential","critical"],ans:1,exp:"A race condition occurs when timing affects the final result of shared data."},
+      {q:"One process in CS at a time is called:",opts:["mutual exclusion","critical exclusion","synchronous exclusion","asynchronous"],ans:0,exp:"Mutual exclusion prevents multiple processes from entering a critical section."},
+      {q:"Which is a synchronization tool?",opts:["thread","pipe","semaphore","socket"],ans:2,exp:"Semaphores are used to coordinate process synchronization."},
+      {q:"Operating system placed in memory:",opts:["low or high","low memory","high memory","none"],ans:0,exp:"OS location depends on hardware and interrupt vector design."},
+      {q:"Semaphore is shared integer variable:",opts:["cannot drop below zero","cannot be more than zero","cannot drop below one","cannot be more than one"],ans:0,exp:"A standard semaphore counts down but never goes below zero."},
+      {q:"Mutual exclusion provided by:",opts:["mutex locks","binary semaphores","both","none"],ans:2,exp:"Both binary semaphores and mutexes can enforce mutual exclusion."},
+      {q:"High priority indirectly preempted by medium task:",opts:["priority inversion","priority removal","priority exchange","modification"],ans:0,exp:"Priority inversion occurs when a low-priority task blocks a high-priority one."},
+      {q:"Process synchronization done on:",opts:["hardware level","software level","both","none"],ans:2,exp:"Synchronization involves hardware (atomic ops) and software constructs."},
+      {q:"A monitor encapsulates:",opts:["shared data","procedures","synchronization","all"],ans:3,exp:"Monitors package data, logic, and sync control into one module."},
+      {q:"To wait within the monitor:",opts:["condition variable","boolean objects","semaphore","all"],ans:0,exp:"Condition variables are used for waiting inside monitor constructs."},
+      {q:"Restricting child to subset of parent resources prevents:",opts:["overloading storage","under-loading CPU","overloading sub-processes","crashing system"],ans:2,exp:"Limits prevent a process from creating too many children and exhausting resources."},
+      {q:"Parent suspended until children terminate:",opts:["wait","fork","exit","exec"],ans:0,exp:"The wait() system call blocks the parent process until its child finishes."},
+      {q:"Cascading termination if parent terminates:",opts:["Normally","Abnormally","Any one","None"],ans:1,exp:"Cascading termination typically occurs when the parent ends abnormally."},
+      {q:"One process at a time vs simultaneous on different CPUs:",opts:["Uniprogramming, MultiProg","MultiProc, MultiProg","MultiProg, MultiProc","Uniprogramming, Multiprocessing"],ans:3,exp:"Uniprogramming runs one job; multiprocessing runs multiple concurrently on different CPUs."},
+      {q:"Process fails, error information is written to:",opts:["new file","another process","log file","none"],ans:2,exp:"Error details are recorded in system or application log files."},
+      {q:"UNIX return value for fork:",opts:["Neg, Zero","Zero, Neg","Zero, Nonzero","Nonzero, Zero"],ans:2,exp:"fork() returns 0 to the child and the child's PID to the parent."},
+      {q:"The child process can:",opts:["be duplicate of parent","never be duplicate","not have program loaded","never have program loaded"],ans:0,exp:"Initially, the child is a clone (duplicate) of the parent's memory image."},
+      {q:"Child completes, parent keeps executing, child is a:",opts:["Orphan","Zombie","Body","Dead"],ans:1,exp:"A zombie process is one that has finished but is still in the process table."},
+      {q:"Interprocess communication:",opts:["comm/sync using same address","communicate and synchronize","only synchronize","none"],ans:1,exp:"IPC allows separate processes to share data and coordinate actions."},
+      {q:"Message passing allows processes to:",opts:["comm without sharing address space","resort to shared data","share data","name recipient"],ans:0,exp:"Message passing doesn't require processes to share a memory region."},
+      {q:"Two operations provided by IPC:",opts:["write & delete","delete & receive","send & delete","receive & send"],ans:3,exp:"Send and Receive are the core operations of message-passing IPC."},
+      {q:"Messages sent by a process:",opts:["fixed size","variable size","fixed or variable sized","none"],ans:2,exp:"IPC systems can support either fixed or variable message lengths."},
+      {q:"Link between P and Q to exchange messages:",opts:["communication link","message-passing link","synchronization link","all"],ans:0,exp:"A 'communication link' is the standard term for the IPC connection."},
+      {q:"TRUE for direct communication:",opts:["associated with N","exactly two processes","N/2 links","two links"],ans:1,exp:"In direct communication, each link connects exactly two processes."},
+      {q:"In indirect communication between P and Q:",opts:["process R handles","another machine helps","there is a mailbox","none"],ans:2,exp:"Indirect communication uses mailboxes (ports) as intermediaries."}
+    ]
+},
+  "TOC": {
+    color: "#f43f5e",
+    questions: [
+      {q:"Finite automata represented graphically; nodes=states; edges=transitions:",opts:["2 and 3 correct","1 and 2 correct","None correct","All correct"],ans:3,exp:"Nodes are states and edges are transitions. [cite: 1783]"},
+      {q:"Turing machine header move over two cells at same time:",opts:["true","false","maybe false"],ans:1,exp:"Moves only one cell at a time. [cite: 1784]"},
+      {q:"Transitions for DFA '1001':",opts:["10","11","12","15"],ans:1,exp:"Standard exam answer is 11. [cite: 1787]"},
+      {q:"Production form -> ε is:",opts:["Sigma","Null Transition","Null state","All"],ans:1,exp:"Known as a null (epsilon) production. [cite: 1789, 1790]"},
+      {q:"Tuples in NFA:",opts:["5","6","7","4"],ans:0,exp:"Formalized as a 5-tuple. [cite: 1791, 1793]"},
+      {q:"Transitions for DFA ends with 00 (3 states):",opts:["6","3","4","Cannot said"],ans:0,exp:"3 states * 2 symbols = 6. [cite: 1795]"},
+      {q:"NFA state cannot travel to more than one state same symbol:",opts:["true","false"],ans:1,exp:"NFA can have multiple transitions. [cite: 1796]"},
+      {q:"Q represents states:",opts:["true","false"],ans:0,exp:"Q is the set of states. [cite: 1797]"},
+      {q:"F represents NON final state elements:",opts:["true","false"],ans:1,exp:"F is final/accepting states. [cite: 1798]"},
+      {q:"All DFA's can be called as NFA's:",opts:["true","false"],ans:0,exp:"DFA is a subset of NFA. [cite: 1799]"},
+      {q:"Kleene closure represented with *:",opts:["true","false"],ans:0,exp:"* is Kleene closure. [cite: 1800]"},
+      {q:"Alphabet set formed using symbols:",opts:["True","False","May not","May be false"],ans:0,exp:"Alphabet is a set of symbols. [cite: 1801]"},
+      {q:"Positive closure represented with *:",opts:["true","false"],ans:1,exp:"Represented with +. [cite: 1802]"},
+      {q:"Every Terminal produces a language:",opts:["true","false"],ans:1,exp:"Productions for non-terminals. [cite: 1803]"},
+      {q:"Formal notation of CFG:",opts:["G={V,T,P,S}","G={V,T,P}","G={V,T,S}","G={G1...}"],ans:0,exp:"V, T, P, S. [cite: 1804]"},
+      {q:"Variable non terminal no way of getting terminal:",opts:["useful","useless","cannot determine"],ans:1,exp:"Called useless. [cite: 1805]"},
+      {q:"Useless reduced grammar for S->aS|A|C, A->a, B->aa, C->aCb:",opts:["Reduced grammar B","Reduced grammar A","Reduced grammar C","Reduced grammar D"],ans:0,exp:"S→aS|A and A→a. [cite: 1809]"},
+      {q:"Grammar ambiguous when w has:",opts:["at least two derivations","at least one derivation","no derivation","all"],ans:0,exp:"Multiple parse trees/derivations. [cite: 1810]"},
+      {q:"A->B where A,B in V:",opts:["Unit production","Useless Symbol","Null Production","All"],ans:0,exp:"Known as unit production. [cite: 1811]"},
+      {q:"In G{V,T,P,S} V represents Terminals:",opts:["true","false","maybe"],ans:1,exp:"V is variables/non-terminals. [cite: 1812]"},
+      {q:"CFG if production has:",opts:["1 terminal LHS","any combo RHS","RHS start non-terminal","1 terminal LHS combo RHS"],ans:1,exp:"LHS is 1 non-terminal. [cite: 1813, 1814]"},
+      {q:"Ambiguous grammar:",opts:["S->aS|Sa|a","S->0S0|1S1|0|1|ε","S->S0S0S|1","All of these"],ans:3,exp:"All are ambiguous. [cite: 1815]"},
+      {q:"Languages conditions in forming strings:",opts:["true","false","maybe true","maybe false"],ans:0,exp:"Defined by rules/conditions. [cite: 1816]"},
+      {q:"CFG for L={0^n 1^n | n>=1}:",opts:["S->0S|S0|1","S->0S0|1S1|0|1|ε","S->S0S0S|1","S->0S1 | 01"],ans:3,exp:"Correct recursive form. [cite: 1817, 1818]"},
+      {q:"Machines accept regular languages:",opts:["NFA","DFA","PDA","All"],ans:3,exp:"All listed. [cite: 1819]"},
+      {q:"Accepted by DPDA:",opts:["L={WcW^r}","L={a^n b^n}","both","both wrong"],ans:2,exp:"Both are DCFLs. [cite: 1821]"},
+      {q:"Accepted by NPDA but NOT DPDA:",opts:["even palindrome","L={0^m 1^n 2^p | m=n}","L={0^m 1^n 2^m}","none"],ans:0,exp:"Even palindromes need non-determinism. [cite: 1823]"},
+      {q:"PDA extra memory called queue:",opts:["true","false"],ans:1,exp:"Memory is a stack. [cite: 1824]"},
+      {q:"FSM limited memory only in states:",opts:["true","false"],ans:0,exp:"States are the only memory. [cite: 1826]"},
+      {q:"PDA deterministic or non-deterministic:",opts:["true","false"],ans:0,exp:"Both exist. [cite: 1827]"},
+      {q:"Z0 is stack bottom symbol:",opts:["true","false"],ans:0,exp:"Standard notation. [cite: 1828]"},
+      {q:"Language NOT regular:",opts:["L={a^n}","L={a^n b^n}","L={a^2n}","all"],ans:1,exp:"a^n b^n is non-regular. [cite: 1829, 1830]"},
+      {q:"PDA not stop on accepting state/stack not empty:",opts:["rejected","accepted","all","none"],ans:0,exp:"Rejected if conditions not met. [cite: 1831]"},
+      {q:"Strings can have symbols not in alphabet:",opts:["yes","no","maybe"],ans:1,exp:"Must only use alphabet symbols. [cite: 1832]"},
+      {q:"PDA operations never work on elements other than top:",opts:["TRUE","FALSE"],ans:0,exp:"Only top of stack. [cite: 1834]"},
+      {q:"Languages determine nature of strings:",opts:["yes","no","maybe"],ans:0,exp:"Yes. [cite: 1835]"},
+      {q:"String set even count zeros/ones:",opts:["{00,11...}","{ε,00,11...}","{ε,010...}","None"],ans:1,exp:"Must include ε. [cite: 1836]"},
+      {q:"Σ{0,1}Σ^3 = {000...}:",opts:["correct","wrong"],ans:1,exp:"Malformed notation. [cite: 1837, 1838]"},
+      {q:"Even zeros/odd ones Σ+:",opts:["{ε...}","{001,100,01...}","{0101...}","{001,100,001...}"],ans:1,exp:"Positive closure excludes ε. [cite: 1839]"},
+      {q:"DFA state cannot travel more than 1 state same symbol:",opts:["true","false","maybe"],ans:0,exp:"Exactly one transition. [cite: 1840]"}
+    ]
+  },
+  "CAO": {
+    color: "#eab308",
+    questions: [
+      {q:"Location address supplied by ___:",opts:["ALU","CPU","MAR","MDR"],ans:2,exp:"MAR (Memory Address Register). [cite: 1842]"},
+      {q:"Control memory is part of ___:",opts:["ROM","RAM","CPU","Memory"],ans:2,exp:"Associated with CPU control unit. [cite: 1843, 1844]"},
+      {q:"Modes in control memory address:",opts:["2","3","5","7"],ans:1,exp:"Usually 3 modes. [cite: 1845]"},
+      {q:"Which is interrupt mode:",opts:["Task","Executive","Both","None"],ans:3,exp:"Not typically Task/Executive. [cite: 1848, 1849]"},
+      {q:"Mode of addresses in control memory:",opts:["Executive","Task","Both","None"],ans:2,exp:"Task and Executive modes. [cite: 1850]"},
+      {q:"Search in cache memory method:",opts:["directing","mapping","controlling","invalidation"],ans:1,exp:"Cache mapping. [cite: 1851]"},
+      {q:"Microprograms stored in:",opts:["ROM","RAM","SAM","SAN"],ans:0,exp:"Control memory/ROM. [cite: 1852]"},
+      {q:"Addressing operand present in instruction:",opts:["Immediate","Direct","Register","None"],ans:0,exp:"Immediate addressing. [cite: 1853]"},
+      {q:"Simplest addressing mode fetched from memory:",opts:["Immediate","Direct","Register","None"],ans:1,exp:"Direct addressing. [cite: 1854]"},
+      {q:"Addressing is a way of direct addressing:",opts:["Immediate","Direct","Register","None"],ans:2,exp:"Register addressing. [cite: 1855]"},
+      {q:"Mode where memory holds Effective Address:",opts:["Immediate","Direct","Register","Indirect"],ans:3,exp:"Indirect addressing. [cite: 1856]"},
+      {q:"Operation of memory transfer:",opts:["Read","Write","Both","None"],ans:2,exp:"Read and Write. [cite: 1857]"},
+      {q:"Extremely influential way of addressing:",opts:["Displacement","Immediate","Direct","Register"],ans:0,exp:"Displacement addressing. [cite: 1858]"},
+      {q:"Signed binary numbers 2's complement multiplication:",opts:["Usual","Booth's","Both","None"],ans:1,exp:"Booth’s algorithm. [cite: 1859]"},
+      {q:"___ interrupt establishes priority:",opts:["Priority","Polling","Daisy chaining","None"],ans:0,exp:"Priority interrupt. [cite: 1860]"},
+      {q:"Instruction code must specify address of:",opts:["Opcode","Operand","Both","None"],ans:1,exp:"Operand address. [cite: 1861]"},
+      {q:"Read operation puts address on register:",opts:["PC","ALU","MAR","All"],ans:2,exp:"Loaded into MAR. [cite: 1862]"},
+      {q:"Puts address in MAR and data in DR:",opts:["Memory read","Memory write","Both","None"],ans:0,exp:"Memory read. [cite: 1863]"},
+      {q:"Memory bus also referred as:",opts:["Data bus","Address bus","Memory bus","All"],ans:0,exp:"Often means data bus. [cite: 1864, 1865]"},
+      {q:"DDR2 stands for:",opts:["Double data rate 2","Data double rate 2","Dynamic data rate 2","Dynamic double rate 2"],ans:0,exp:"Double Data Rate 2. [cite: 1866]"},
+      {q:"SDRAM stands for:",opts:["System dynamic","Synchronous dynamic","Both","None"],ans:1,exp:"Synchronous Dynamic Random Access Memory. [cite: 1867]"},
+      {q:"Sequence of operations processing instruction:",opts:["Execute","Fetch","Decode","Instruction cycle"],ans:3,exp:"Instruction cycle. [cite: 1868]"},
+      {q:"IRET stands for:",opts:["Interrupt enter","Interrupt return","Interrupt delete","None"],ans:1,exp:"Interrupt Return. [cite: 1869]"}
+    ]
+  },
+  "DBMS": {
+    color: "#06b6d4",
+    questions: [
+      {q:"'Student registers a course' — 'registers' goes:",opts:["inside diamond between","over connecting line","inside oval between","inside rectangle between"],ans:0,exp:"Relationship is a diamond. [cite: 1871, 1872]"},
+      {q:"Candidate keys for R(A,B,C,D) {AB->CD, D->B, C->A}:",opts:["2","3","4","5"],ans:1,exp:"AB, BC, CD. [cite: 1873]"},
+      {q:"Extraneous attribute in AB->CD {AB->CD, D->B}:",opts:["A","B","C","None"],ans:3,exp:"None. [cite: 1878, 1879]"},
+      {q:"Highest normal form R(A,B,C,D) {A->BCD, BC->AD, D->B}:",opts:["1NF","2NF","3NF","BCNF"],ans:3,exp:"Is in BCNF. [cite: 1881]"},
+      {q:"Non-prime attributes R(A,B,C,D,E) {AE->BC, AC->D, CD->BE, D->E}:",opts:["A,C,D,E","B","A,C","B,D,E"],ans:1,exp:"Only B is non-prime. [cite: 1882, 1883]"},
+      {q:"AB+ for R(A,B,C,D,E,F) {AB->C, C->DE, E->F, D->A, C->B}:",opts:["{C}","{C,D,E}","{C,D,E,F}","{A,B,C,D,E,F}"],ans:3,exp:"All attributes obtained. [cite: 1884]"},
+      {q:"Relational algebra for 'SELECT city FROM store':",opts:["sigma city(store)","pi city(store)","sigma store(city)","pi store(city)"],ans:1,exp:"Projection (π). [cite: 1885]"},
+      {q:"Fetch details of all stores in India:",opts:["sigma country='India'(store)","pi country='India'(store)","sigma store(country='India')","pi store(country='India')"],ans:0,exp:"Selection (σ). [cite: 1887]"},
+      {q:"NOT a valid schedule T1: {R(X), W(X)} T2: {R(Y), W(Y)}:",opts:["RX WX RY WY","RY WY RX WX","WX WY RX RY","RX RY WX WY"],ans:2,exp:"Violates internal order. [cite: 1888, 1889]"},
+      {q:"Conflict pairs T1: {R1(X), W1(X)} T2: {R2(X), W2(Y)}:",opts:["R1 W1","R1 R2","W1 R2","R1 W2"],ans:2,exp:"W1(X) and R2(X) conflict. [cite: 1890]"},
+      {q:"Conflict serializable schedule T1: {R1(X), W1(X), R1(Y)} T2: {R2(Y), R2(X), W2(X)}:",opts:["R1(X) R2(Y) R2(X) W1(X) W2(X) R1(Y)","R2(Y) R2(X) R1(X) W1(X) W2(X) R1(Y)","R1(X) W1(X) R2(Y) R2(X) W2(X) R1(Y)","R2(Y) R2(X) R1(X) W2(X) W1(X) R1(Y)"],ans:2,exp:"T1 before T2. [cite: 1891]"},
+      {q:"Contact number country code/actual number attribute:",opts:["Atomic","Composite","Multi-valued","Derived"],ans:1,exp:"Is composite. [cite: 1893]"},
+      {q:"I. Strict 2PL non-recoverable II. Thomas Write Rule view but not conflict. TRUE?",opts:["I only","II only","Both","Neither"],ans:1,exp:"II is true. [cite: 1895, 1896]"},
+      {q:"NOT a goal of concurrent execution:",opts:["Improved Util","Improved Throughput","Reduced deadlock","Reduced waiting"],ans:2,exp:"Deadlock risk increases. [cite: 1897]"},
+      {q:"True about concurrency:",opts:["no interference","atomicity","integrity violation","None"],ans:0,exp:"Ensures no interference. [cite: 1899]"},
+      {q:"Not allow dirty/non-repeatable but allows phantom:",opts:["Read committed","Read uncommitted","Repeatable read","Serializable"],ans:2,exp:"Repeatable read. [cite: 1903]"},
+      {q:"False about responsibility:",opts:["durability recovery","isolation concurrency","atomicity recovery","None"],ans:3,exp:"None. [cite: 1904, 1906]"},
+      {q:"True about protocols:",opts:["Thomas in basic","Basic in multi-version","Multi-version in Thomas","All"],ans:1,exp:"Basic in multi-version. [cite: 1907]"},
+      {q:"NOT correct for serializability:",opts:["serial schedule independent","Every schedule serializable","non-serial overlap","non-serial correct outcomes"],ans:1,exp:"Not every schedule serializable. [cite: 1909]"},
+      {q:"NOT a recovery technique:",opts:["Deferred","Immediate","Two-phase commit","Recovery management"],ans:2,exp:"2PC is distributed commit. [cite: 1910]"},
+      {q:"Rollback used to:",opts:["Recover from failure","Update","Retrieve old","Repeat"],ans:0,exp:"Recover from failure. [cite: 1911]"},
+      {q:"True about indexes:",opts:["improve update performance","tougher large keys","Both","None"],ans:1,exp:"Maintenance tougher with large keys. [cite: 1912]"},
+      {q:"Student registers more than one course relation:",opts:["one-to-many","many-to-many","one-to-one","None"],ans:1,exp:"Many-to-many. [cite: 1913]"},
+      {q:"B+ tree 4KB node 40B entry. Height 1 million keys:",opts:["5","4","6","3"],ans:3,exp:"Height is 3. [cite: 1916]"},
+      {q:"Schedule S: r1(X), w3(X), w3(Y), w2(Y), r1(Z), w3(Z), w2(Z) is:",opts:["Both","View but not conflict","Only View","Only conflict"],ans:1,exp:"View but not conflict. [cite: 1917]"},
+      {q:"NOT true about B+ tree:",opts:["balanced","non-leaf point data","keys sorted","leaf point next leaf"],ans:1,exp:"Only leaf point to data. [cite: 1918]"},
+      {q:"B+ trees balanced since:",opts:["root-to-leaf lengths equal","lengths differ by 1","children differ by 1","records differ by 1"],ans:0,exp:"Paths equal length. [cite: 1919, 1920]"},
+      {q:"First level of multilevel indexes:",opts:["zero level","third level","second level","first level"],ans:0,exp:"Zero level. [cite: 1921]"},
+      {q:"Correct about B/B+:",opts:["B disk B+ memory","Range queries faster B+","B primary B+ secondary","height independent records"],ans:1,exp:"Range queries faster B+. [cite: 1924]"},
+      {q:"B-tree order 4 max/min keys internal:",opts:["4,2","3,1","4,0","4,3"],ans:1,exp:"3 max, 1 min. [cite: 1925, 1926]"},
+      {q:"Incorrect about NoSQL/NewSQL:",opts:["non-relational defined schema","NoSQL without schema","NewSQL without schema","All"],ans:2,exp:"NewSQL needs schema. [cite: 1928]"},
+      {q:"NoSQL handle large volumes of:",opts:["Unstructured","Structured","Semi-structured","All"],ans:0,exp:"Unstructured. [cite: 1932]"},
+      {q:"NoSQL databases:",opts:["Key-value","Wide-column","Document","All"],ans:3,exp:"All of the above. [cite: 1933]"},
+      {q:"Athlete max 3 activities cardinality:",opts:["1:n","2:1","1:3","n:1"],ans:2,exp:"1:3 ratio. [cite: 1934]"},
+      {q:"S: r1,w1,r2,r1,w1,w2,r2,c1,c2. Recoverable? Interchanged w1/w2?",opts:["Only I","Only II","Both","None"],ans:0,exp:"S is recoverable. [cite: 1937]"},
+      {q:"S: r1(y),r2(x),r2(y),r3(y),w2(x),w1(y),w3(x),r1(x):",opts:["conflict not view","neither","both","view not conflict"],ans:3,exp:"View but not conflict serializable. [cite: 1939]"},
+      {q:"NOT an entity set in SHOPPING:",opts:["Customers","Stock","Products","ProductName"],ans:3,exp:"ProductName is attribute. [cite: 1940]"},
+      {q:"DB for research document:",opts:["Multimedia","Geographical","Warehouse","Textual"],ans:3,exp:"Textual Database. [cite: 1941]"},
+      {q:"Net banking window visible to customer:",opts:["database state","Schema","View","dictionary"],ans:2,exp:"The View. [cite: 1942]"},
+      {q:"Snapshot taken at 4pm:",opts:["Schema","state","Abstraction","Catalogue"],ans:1,exp:"Database state. [cite: 1944]"},
+      {q:"Supermarket schema construct:",opts:["Products","inventory","sales","All"],ans:3,exp:"All of the above. [cite: 1945]"},
+      {q:"Standalone DB application architecture:",opts:["Single tier","Two tier","Three tier","None"],ans:0,exp:"Single tier. [cite: 1947]"},
+      {q:"Cafeteria DB entity sets:",opts:["customers manager delivery","customers manager items delivery bill","customers manager bill","FoodMenu"],ans:1,exp:"Most complete set. [cite: 1948]"},
+      {q:"Address structured door/street/city/zip:",opts:["Simple","Multivalued","Composite","Derived"],ans:2,exp:"Composite attribute. [cite: 1951]"},
+      {q:"NOT proper subset key for AB, AC, DE:",opts:["BC","DE","C","AD"],ans:1,exp:"DE is a full key. [cite: 1953]"},
+      {q:"Function Instructor plays in relationship teaches:",opts:["Participation","Role","Instance","Position"],ans:1,exp:"The Role. [cite: 1954]"},
+      {q:"Multivalued attribute:",opts:["Phone_number","Name","DOB","All"],ans:0,exp:"Phone number. [cite: 1956]"},
+      {q:"Key attribute PROJECT(ProjectId, Projectname, ProjLocation):",opts:["ProjectId ProjectName","ProjectName","ProjLocation","ProjectId"],ans:3,exp:"ProjectId. [cite: 1957]"},
+      {q:"Experience calculated from joining date:",opts:["Derived","Descriptive","Simple","Multivalued"],ans:0,exp:"Derived attribute. [cite: 1959]"},
+      {q:"SLOT weak entity NOT true:",opts:["identifying TAKES","identifying TIMETABLE","total participation TAKES","no existence dependency TIMETABLE"],ans:3,exp:"Has existence dependency. [cite: 1961]"},
+      {q:"SHIPPING specialized ORDERS(orderId, items, price) attributes:",opts:["ID items price","ID shipID","ID items price shipID from to","ID items shipID from to"],ans:2,exp:"Inherits + adds own. [cite: 1963]"},
+      {q:"Propagating superclass change to subclass:",opts:["Attribute defined","Predicate defined","Both","Overlapping"],ans:2,exp:"Both apply. [cite: 1964]"},
+      {q:"'Customer buys Products' relationship set:",opts:["Customer","Products","Buys","Customer/Products"],ans:2,exp:"Buys. [cite: 1965]"},
+      {q:"MovieZone Hollywood/Bollywood process:",opts:["Generalization","Specialization","Inheritance","Constraint"],ans:1,exp:"Specialization. [cite: 1967]"},
+      {q:"Simple attribute:",opts:["name","grade","Color","VehicleRegistrationNumber"],ans:3,exp:"Vehicle registration number. [cite: 1968]"},
+      {q:"R in BCNF:",opts:["4NF","2NF not 3NF","not 1NF","2NF and 3NF"],ans:3,exp:"Implies 2NF and 3NF. [cite: 1970]"},
+      {q:"DOCTOR total participation DIAGNOSES PATIENTS min cardinality:",opts:["1:1","M:N","1:N","N:1"],ans:2,exp:"1:N relationship. [cite: 1972]"},
+      {q:"SHIPPING(shippingId, ShipLocations):",opts:["shippingId primary","ShipLocations primary","Composite","None"],ans:0,exp:"shippingId is primary. [cite: 1976]"},
+      {q:"SENSE SELECT SCOPE define DEPARTMENTS process:",opts:["Specialization","Generalization","Top down","Inheritance"],ans:1,exp:"Generalization. [cite: 1978]"},
+      {q:"INVESTOR can buy or sell SHARES:",opts:["Relationship","Role definition","Recursive","Participation"],ans:0,exp:"Relationship. [cite: 1980]"},
+      {q:"Irrecoverable mistake:",opts:["read uncommitted","read committed","read uncommitted read","write uncommitted read"],ans:0,exp:"Dirty read from uncommitted. [cite: 1981, 1982]"},
+      {q:"R1(C,A) R2(A,B) lossless? R1(A,B) R2(B,C) lossy?",opts:["Only I","Only II","Both","Neither"],ans:2,exp:"I lossless II lossy. [cite: 1985]"},
+      {q:"Two phase commit protocol:",opts:["serializability","prevents deadlock","detects deadlock","recover deadlock"],ans:0,exp:"Ensures commit status. [cite: 1990]"},
+      {q:"B+ tree max keys 7. Min keys non-root:",opts:["3","1","2","4"],ans:0,exp:"Min keys = 3. [cite: 1992]"},
+      {q:"Ordering matches index ordering:",opts:["Clustered","Sparse","Dense","Unclustered"],ans:0,exp:"Clustered index. [cite: 1994]"},
+      {q:"Calculated by formula translates key to position:",opts:["B-Tree","Hashed","Indexed","Sequential"],ans:1,exp:"Hashed file. [cite: 1995]"},
+      {q:"SQL display non-repeating:",opts:["DIFFERENT","DISTINCT","ALL","UNIQUE"],ans:1,exp:"DISTINCT keyword. [cite: 1996]"},
+      {q:"Candidate keys R(ABCDEF) {A->BC, B->CFH, E->A, F->E}:",opts:["5","6","3","4"],ans:2,exp:"Usually 3 in exam keys. [cite: 2000]"},
+      {q:"Normal form for R Q68:",opts:["2NF not 3NF","3NF not BCNF","1NF not 2NF","BCNF"],ans:2,exp:"1NF but not 2NF. [cite: 2005]"},
+      {q:"Key R{ABCDEFG} {AB->C, B->EF, AD->G}:",opts:["ABCGD","AD","AB","ABD"],ans:3,exp:"ABD closure covers all. [cite: 2008]"},
+      {q:"Superkeys for R(ABCDEFGH) H as key:",opts:["64","128","7","256"],ans:1,exp:"2^7 = 128. [cite: 2010]"},
+      {q:"FALSE about Normal Forms:",opts:["3NF lossless always","2 attributes BCNF","BCNF lossless dependency always","BCNF stronger 3NF"],ans:2,exp:"BCNF not always dependency preserving. [cite: 2013]"},
+      {q:"B-tree order 4 8 insertions max splits:",opts:["3","4","5","6"],ans:1,exp:"Max 4 splits. [cite: 2015, 2016]"},
+      {q:"Durability in ACID survive:",opts:["except OS crash","Always failure of any kind","except power","except disk"],ans:1,exp:"Survive all failures. [cite: 2017]"},
+      {q:"SQL Male salary > overall avg output:",opts:["Male more avg org","Male equal avg org","Male is avg org","Male less avg org"],ans:0,exp:"Departments male > avg org. [cite: 2020]"},
+      {q:"Index eno available scan ONLY index:",opts:["any","hash clustered","B+tree clustered","any clustered"],ans:2,exp:"B+ tree and clustered. [cite: 2024]"},
+      {q:"Highest degree concurrency:",opts:["Table","Row","Page","All same"],ans:1,exp:"Row-level locking. [cite: 2025]"},
+      {q:"SELECT * fields output:",opts:["player","num_matches","matches country","All fields"],ans:3,exp:"All fields of relation. [cite: 2027]"},
+      {q:"SQL change Mishra to Singh:",opts:["UPDATE INTO","UPDATE SET WHERE","MODIFY INTO","MODIFY SET WHERE"],ans:1,exp:"UPDATE ... SET ... WHERE. [cite: 2028]"}
+    ]
+  },
+  "Web Technology": {
+    color: "#10b981",
+    questions: [
+      {q:"Which company developed JavaScript?",opts:["Microsoft","Netscape","Google","Oracle"],ans:1,exp:"Developed by Netscape. [cite: 2030]"},
+      {q:"Single-line comments in JavaScript:",opts:["","//","##","**"],ans:1,exp:"Uses // for single lines. [cite: 2032]"},
+      {q:"Declares a block-scoped variable:",opts:["var","let","static","function"],ans:1,exp:"let is block-scoped. [cite: 2033]"},
+      {q:"Access property name of object student:",opts:["student(name)","student->name","student.name","student::name"],ans:2,exp:"Uses dot notation. [cite: 2035]"},
+      {q:"Add element at end of array:",opts:["push()","pop()","shift()","unshift()"],ans:0,exp:"push() adds to end. [cite: 2037]"},
+      {q:"Returns length of string:",opts:["size()","count()","length","strlen()"],ans:2,exp:"length property. [cite: 2038]"},
+      {q:"Keyword stops loop execution:",opts:["stop","break","exit","return"],ans:1,exp:"break exits loop. [cite: 2039]"},
+      {q:"Checks both value and type:",opts:["==","!=","===","="],ans:2,exp:"=== strict equality. [cite: 2040]"},
+      {q:"str.substring(0,4) on 'JavaScript':",opts:["Java","JavaS","Script","avaS"],ans:0,exp:"Indices 0, 1, 2, 3. [cite: 2042]"},
+      {q:"Removes last array element:",opts:["pop()","push()","shift()","delete()"],ans:0,exp:"pop() removes last. [cite: 2043]"},
+      {q:"Default value of uninitialized variable:",opts:["null","0","undefined","empty"],ans:2,exp:"Is undefined. [cite: 2045]"},
+      {q:"Add element at end of array:",opts:["push()","pop()","shift()","unshift()"],ans:0,exp:"push() inserts at end. [cite: 2047]"},
+      {q:"Work with dates and time:",opts:["Time","Calendar","Date","Clock"],ans:2,exp:"Date object. [cite: 2049]"},
+      {q:"Current year from Date object:",opts:["getYear()","getFullYear()","getDate()","getMonth()"],ans:1,exp:"getFullYear() for 4-digit year. [cite: 2050]"},
+      {q:"Keyword defines a function:",opts:["method","function","def","fun"],ans:1,exp:"function keyword. [cite: 2051]"},
+      {q:"NOT a JavaScript data type:",opts:["Number","Boolean","Float","String"],ans:2,exp:"No separate Float type. [cite: 2053]"},
+      {q:"Search string using regular expression:",opts:["find()","search()","locate()","scan()"],ans:1,exp:"search() method. [cite: 2055]"},
+      {q:"Array.isArray([10, 20, 30]):",opts:["false","true","undefined","Error"],ans:1,exp:"Returns true. [cite: 2056]"},
+      {q:"Separates presentation, logic, data:",opts:["Monolithic","Client-Server","Three-tier","Peer-to-Peer"],ans:2,exp:"Three-tier architecture. [cite: 2058]"},
+      {q:"Browser acts as:",opts:["Server","Client","Middleware","Database"],ans:1,exp:"Browser is the client. [cite: 2060]"},
+      {q:"Protocol for web client/server communication:",opts:["FTP","SMTP","HTTP/HTTPS","TCP"],ans:2,exp:"HTTP and HTTPS. [cite: 2062]"},
+      {q:"Tier handles business logic:",opts:["Presentation","Data","Application","Network"],ans:2,exp:"Application tier. [cite: 2064]"},
+      {q:"Stores/manages persistent data:",opts:["Web server","Application server","Client browser","Database server"],ans:3,exp:"Database server. [cite: 2066]"},
+      {q:"Role of web server:",opts:["business logic","stores data","handles requests/responses","manages UI"],ans:2,exp:"Handles HTTP requests/responses. [cite: 2068]"},
+      {q:"Architectural style for scalable web services:",opts:["SOAP","REST","RPC","CGI"],ans:1,exp:"REST is common. [cite: 2070]"},
+      {q:"Improves performance by storing frequently accessed data:",opts:["Load balancer","Cache","Firewall","Proxy"],ans:1,exp:"The Cache. [cite: 2072]"},
+      {q:"Main purpose of load balancer:",opts:["store securely","reduce scripting","distribute traffic","convert HTTPS"],ans:2,exp:"Distribute traffic. [cite: 2074]"},
+      {q:"MVC handles user input:",opts:["Model","View","Controller","Database"],ans:2,exp:"Controller handles input. [cite: 2076]"},
+      {q:"Main function of web server:",opts:["design pages","store databases","handle requests/responses","execute client scripts"],ans:2,exp:"Handle HTTP requests. [cite: 2078]"},
+      {q:"Protocol for web communication:",opts:["FTP","SMTP","HTTP","SNMP"],ans:2,exp:"HTTP. [cite: 2079]"},
+      {q:"Retrieve data from server:",opts:["POST","GET","PUT","DELETE"],ans:1,exp:"GET method. [cite: 2081]"},
+      {q:"Send data to server:",opts:["GET","POST","TRACE","CONNECT"],ans:1,exp:"POST method. [cite: 2083]"},
+      {q:"Component sends HTTP request:",opts:["Web server","Database","Client/Browser","Application server"],ans:2,exp:"Client/Browser. [cite: 2084]"},
+      {q:"HTTP stands for:",opts:["Hyper Transfer","HyperText Transfer","High Transfer","Transmission Process"],ans:1,exp:"HyperText Transfer Protocol. [cite: 2086]"},
+      {q:"'Page Not Found':",opts:["200","301","404","500"],ans:2,exp:"404 status code. [cite: 2088]"},
+      {q:"Successful request:",opts:["200","404","500","403"],ans:0,exp:"200 OK. [cite: 2089]"},
+      {q:"Included in HTTP response:",opts:["request header","status code, headers, body","URL","cookies"],ans:1,exp:"Status line, headers, body. [cite: 2091]"},
+      {q:"HTTPS differs from HTTP because:",opts:["Uses FTP","Encrypts SSL/TLS","Local only","No servers"],ans:1,exp:"Encrypts data using SSL/TLS. [cite: 2093]"},
+      {q:"Primary purpose of cookies?",opts:["Store objects","Maintain state","Execute JS","Encrypt data"],ans:1,exp:"Maintain user state. [cite: 2095]"},
+      {q:"Where are cookies stored?",opts:["Web server","Database","Client browser","Application server"],ans:2,exp:"In the client browser. [cite: 2096]"},
+      {q:"Cookie deleted when browser closed:",opts:["Persistent","Secure","Session","HTTP-only"],ans:2,exp:"Session cookie. [cite: 2098]"},
+      {q:"Sessions mainly used to:",opts:["permanent store","track users","reduce load","style"],ans:1,exp:"Track users across requests. [cite: 2100]"},
+      {q:"Session data stored:",opts:["browser","proxy","web server","DNS"],ans:2,exp:"Stored on web server. [cite: 2102]"},
+      {q:"AJAX updates without reloading using:",opts:["forms","XML parsing","Asynchronous server comm","CSS"],ans:2,exp:"Asynchronous communication. [cite: 2104]"},
+      {q:"Traditionally used in AJAX:",opts:["Fetch","XMLHttpRequest","Document","Window"],ans:1,exp:"XMLHttpRequest object. [cite: 2106]"},
+      {q:"AJAX stands for:",opts:["Java and XML","JavaScript and XML","JavaScript and XHTML","JSON and XML"],ans:1,exp:"Asynchronous JavaScript and XML. [cite: 2108]"},
+      {q:"Data format modern AJAX:",opts:["XML","HTML","JSON","CSV"],ans:2,exp:"JSON. [cite: 2110]"},
+      {q:"AJAX feature improves experience:",opts:["reload","Synchronous","Partial updates","Server rendering"],ans:2,exp:"Partial page updates. [cite: 2112]"},
+      {q:"AJAX requests background using:",opts:["Multithreading","Asynchronous calls","Batch","Compilation"],ans:1,exp:"Asynchronous calls. [cite: 2114]"},
+      {q:"More secure sensitive user data:",opts:["Cookies","Sessions","Local storage","Cache"],ans:1,exp:"Sessions. [cite: 2116]"},
+      {q:"AJAX allows:",opts:["Synchronous","reload","Communicate without reloading","XML only"],ans:2,exp:"Communicate without reloading. [cite: 2118]"}
+    ]
+  }
+};
+let currentSubject = Object.keys(subjects)[0];
+let mode = 'quiz';
+let filter = 'all';
+let answers = {};
+let flashIndex = 0;
+let flashFlipped = false;
+let searchTerm = '';
+
+function resetAll() {
+  if (!confirm('Reset all scores and answers?')) return;
+  answers = {};
+  flashIndex = 0; flashFlipped = false;
+  renderSidebar(); renderMain(); updateStats();
+}
+
+function getSubjectAnswers(subj) {
+  const qs = subjects[subj].questions;
+  let correct = 0, wrong = 0, total = qs.length;
+  qs.forEach((q,i) => {
+    const key = `${subj}_${i}`;
+    if (answers[key] === 'correct') correct++;
+    else if (answers[key] === 'wrong') wrong++;
+  });
+  return { correct, wrong, total };
+}
+
+function updateStats() {
+  let totalC = 0, totalW = 0, totalQ = 0;
+  Object.keys(subjects).forEach(s => {
+    const {correct,wrong,total} = getSubjectAnswers(s);
+    totalC += correct; totalW += wrong; totalQ += total;
+  });
+  document.getElementById('statTotal').textContent = totalQ;
+  document.getElementById('statCorrect').textContent = totalC;
+  document.getElementById('statWrong').textContent = totalW;
+  const answered = totalC + totalW;
+  document.getElementById('statScore').textContent = answered > 0 ? Math.round(totalC/answered*100)+'%' : '—';
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('modeQuiz').classList.toggle('active', m==='quiz');
+  document.getElementById('modeFlash').classList.toggle('active', m==='flash');
+  flashIndex = 0; flashFlipped = false;
+  renderMain();
+}
+
+function selectSubject(s) {
+  currentSubject = s;
+  filter = 'all'; searchTerm = '';
+  flashIndex = 0; flashFlipped = false;
+  renderSidebar(); renderMain();
+}
+
+function renderSidebar() {
+  const list = document.getElementById('subjectList');
+  list.innerHTML = Object.keys(subjects).map(s => {
+    const {correct,wrong,total} = getSubjectAnswers(s);
+    const active = s === currentSubject ? 'active' : '';
+    const safeName = s.replace(/'/g,"&#39;");
+    return `<button class="subject-btn ${active}" onclick="selectSubject('${safeName}')">
+      <span class="dot" style="background:${subjects[s].color}"></span>
+      ${s}
+      <span class="count">${correct+wrong}/${total}</span>
+    </button>`;
+  }).join('');
+}
+
+function getFilteredQuestions() {
+  const qs = subjects[currentSubject].questions;
+  return qs.map((q,i) => ({...q, originalIndex: i})).filter(q => {
+    const key = `${currentSubject}_${q.originalIndex}`;
+    const ans = answers[key];
+    if (filter === 'unanswered' && ans) return false;
+    if (filter === 'wrong' && ans !== 'wrong') return false;
+    if (searchTerm) {
+      return q.q.toLowerCase().includes(searchTerm) ||
+             q.opts.some(o => o.toLowerCase().includes(searchTerm));
+    }
+    return true;
+  });
+}
+
+function renderQuizMode() {
+  const qs = getFilteredQuestions();
+  const color = subjects[currentSubject].color;
+  const {correct,wrong,total} = getSubjectAnswers(currentSubject);
+  const answered = correct + wrong;
+  const pct = total > 0 ? Math.round(answered/total*100) : 0;
+
+  let html = `
+    <div class="subject-header">
+      <div class="subject-name" style="color:${color}">${currentSubject}</div>
+      <div class="subject-progress">
+        <div class="progress-label"><span>${answered} of ${total} answered</span><span>${pct}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn ${filter==='all'?'active':''}" onclick="setFilter('all')">ALL (${total})</button>
+      <button class="filter-btn ${filter==='unanswered'?'active':''}" onclick="setFilter('unanswered')">UNANSWERED (${total-answered})</button>
+      <button class="filter-btn wrong-only ${filter==='wrong'?'active':''}" onclick="setFilter('wrong')">WRONG (${wrong})</button>
+      <input class="search-bar" type="text" placeholder="Search questions..." value="${searchTerm}" oninput="searchTerm=this.value.toLowerCase(); renderMain()">
+    </div>
+  `;
+
+  if (qs.length === 0) {
+    html += `<div class="empty"><div class="icon">🔍</div><p>No questions match the current filter.</p></div>`;
+  } else {
+    qs.forEach(q => {
+      const i = q.originalIndex;
+      const key = `${currentSubject}_${i}`;
+      const userAnswer = answers[key];
+      const isCorrect = userAnswer === 'correct';
+      const isWrong = userAnswer === 'wrong';
+      let cardClass = isCorrect ? 'answered-correct' : isWrong ? 'answered-wrong' : '';
+      const labels = ['A','B','C','D'];
+
+      html += `<div class="question-card ${cardClass}" id="card_${i}">
+        <div class="q-header">
+          <span class="q-num">Q${i+1}</span>
+          <div class="q-text">${q.q}</div>
+        </div>
+        <div class="options-grid">`;
+
+      q.opts.forEach((opt,oi) => {
+        let cls = '';
+        if (userAnswer) {
+          if (oi === q.ans) cls = 'selected-correct reveal-correct';
+          if (oi !== q.ans && userAnswer !== undefined) {}
+        }
+        html += `<button class="option-btn ${cls}" ${userAnswer ? 'disabled' : ''}
+          onclick="handleAnswer('${key}', ${oi}, ${q.ans}, this)">
+          <span class="opt-label">${labels[oi]}</span><span>${opt}</span>
+        </button>`;
+      });
+
+      html += `</div>`;
+
+      if (userAnswer && q.exp) {
+        html += `<div class="explanation"><strong>${isCorrect ? '✓ Correct!' : isWrong ? '✗ Wrong' : 'Answer revealed'}</strong> — ${q.exp}</div>`;
+      }
+
+      html += `<div class="q-footer">
+        <span class="status-icon">${isCorrect ? '✅' : isWrong ? '❌' : ''}</span>
+        ${!userAnswer ? `<button class="show-answer-btn" onclick="revealAnswer('${key}', ${q.ans}, ${i})">Show Answer</button>` : ''}
+      </div></div>`;
+    });
+  }
+
+  document.getElementById('mainArea').innerHTML = html;
+
+  qs.forEach(q => {
+    const i = q.originalIndex;
+    const key = `${currentSubject}_${i}`;
+    const userAnswer = answers[key];
+    if (userAnswer === 'wrong' && answers[`${key}_chosen`] !== undefined) {
+      const card = document.getElementById(`card_${i}`);
+      if (card) {
+        const btns = card.querySelectorAll('.option-btn');
+        const chosen = answers[`${key}_chosen`];
+        if (btns[chosen]) btns[chosen].className = 'option-btn selected-wrong';
+      }
+    }
+  });
+}
+
+function handleAnswer(key, selectedIdx, correctIdx, btn) {
+  if (answers[key]) return;
+  const isCorrect = selectedIdx === correctIdx;
+  answers[key] = isCorrect ? 'correct' : 'wrong';
+  answers[`${key}_chosen`] = selectedIdx;
+
+  const card = btn.closest('.question-card');
+  const btns = card.querySelectorAll('.option-btn');
+  btns.forEach((b,i) => {
+    b.disabled = true;
+    if (i === correctIdx) b.className = 'option-btn selected-correct reveal-correct';
+    else if (b === btn && !isCorrect) b.className = 'option-btn selected-wrong';
+  });
+  card.classList.toggle('answered-correct', isCorrect);
+  card.classList.toggle('answered-wrong', !isCorrect);
+
+  const subjData = subjects[currentSubject];
+  const parts = key.split('_');
+  const qIdx = parseInt(parts[parts.length-1]);
+  const q = subjData.questions[qIdx];
+
+  if (q.exp) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation';
+    expDiv.innerHTML = `<strong>${isCorrect ? '✓ Correct!' : '✗ Wrong'}</strong> — ${q.exp}`;
+    card.querySelector('.q-footer').before(expDiv);
+  }
+  card.querySelector('.show-answer-btn')?.remove();
+  card.querySelector('.status-icon').textContent = isCorrect ? '✅' : '❌';
+
+  updateStats();
+  renderSidebar();
+}
+
+function revealAnswer(key, correctIdx, qIdx) {
+  answers[key] = 'shown';
+  const card = document.getElementById(`card_${qIdx}`);
+  if (!card) return;
+  const btns = card.querySelectorAll('.option-btn');
+  btns.forEach((b,i) => {
+    b.disabled = true;
+    if (i === correctIdx) b.className = 'option-btn reveal-correct';
+  });
+  const footer = card.querySelector('.q-footer');
+  footer.querySelector('.show-answer-btn')?.remove();
+  const q = subjects[currentSubject].questions[qIdx];
+  if (q.exp) {
+    const expDiv = document.createElement('div');
+    expDiv.className = 'explanation';
+    expDiv.innerHTML = `<strong>Answer revealed</strong> — ${q.exp}`;
+    footer.before(expDiv);
+  }
+}
+
+function setFilter(f) {
+  filter = f;
+  renderMain();
+}
+
+function renderFlashMode() {
+  const qs = subjects[currentSubject].questions;
+  const color = subjects[currentSubject].color;
+  const q = qs[flashIndex];
+  const correctOpt = q.opts[q.ans];
+
+  document.getElementById('mainArea').innerHTML = `
+    <div class="subject-header">
+      <div class="subject-name" style="color:${color}">${currentSubject}</div>
+    </div>
+    <div class="flashcard-wrapper">
+      <div class="flashcard ${flashFlipped ? 'flipped' : ''}" id="flashcard" onclick="flipCard()">
+        <div class="flashcard-inner">
+          <div class="flashcard-face">
+            <div class="fc-label">Question ${flashIndex+1} of ${qs.length}</div>
+            <div class="fc-question">${q.q}</div>
+            <div class="fc-hint" style="margin-top:20px">Click to reveal answer</div>
+          </div>
+          <div class="flashcard-face flashcard-back">
+            <div class="fc-label">Answer</div>
+            <div class="fc-answer">${correctOpt}</div>
+            ${q.exp ? `<div class="fc-hint">${q.exp}</div>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="fc-nav">
+        <button class="fc-nav-btn" onclick="fcPrev()">← Prev</button>
+        <span class="fc-counter">${flashIndex+1} / ${qs.length}</span>
+        <button class="fc-nav-btn" onclick="fcNext()">Next →</button>
+      </div>
+      <div class="fc-hint-text">Space to flip &nbsp;·&nbsp; ← → to navigate</div>
+    </div>
+  `;
+}
+
+function flipCard() {
+  flashFlipped = !flashFlipped;
+  const card = document.getElementById('flashcard');
+  if (card) card.classList.toggle('flipped', flashFlipped);
+}
+
+function fcPrev() {
+  const qs = subjects[currentSubject].questions;
+  flashIndex = (flashIndex - 1 + qs.length) % qs.length;
+  flashFlipped = false;
+  renderMain();
+}
+
+function fcNext() {
+  const qs = subjects[currentSubject].questions;
+  flashIndex = (flashIndex + 1) % qs.length;
+  flashFlipped = false;
+  renderMain();
+}
+
+function renderMain() {
+  if (mode === 'quiz') renderQuizMode();
+  else renderFlashMode();
+}
+
+document.addEventListener('keydown', e => {
+  if (mode === 'flash') {
+    if (e.key === 'ArrowRight') { e.preventDefault(); fcNext(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); fcPrev(); }
+    else if (e.key === ' ') { e.preventDefault(); flipCard(); }
+  }
+});
+
+renderSidebar();
+renderMain();
+updateStats();
+</script>
+</body>
+</html>
