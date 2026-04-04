@@ -237,7 +237,7 @@ header{
     transform:translateX(-100%);
   }
   .sidebar.open{transform:translateX(0)}
-  .sb-overlay{display:block}
+  .sb-overlay{display:none}
   .sb-overlay.show{display:block}
   .main{padding:16px}
   .sh-name{font-size:1.1rem}
@@ -1311,6 +1311,39 @@ document.addEventListener('keydown',e=>{
 // ═══════════════════════════════════════════════
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function jsStr(s){return JSON.stringify(s);}
+
+// ═══════════════════════════════════════════════
+// TOUCH / SWIPE FOR MOBILE
+// ═══════════════════════════════════════════════
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+}, {passive: true});
+
+document.addEventListener('touchend', e => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+}, {passive: true});
+
+function handleSwipe() {
+  const diff = touchEndX - touchStartX;
+  if (Math.abs(diff) < 60) return; // ignore small accidental swipes
+
+  const target = document.activeElement?.tagName;
+  if(target === 'INPUT' || target === 'TEXTAREA') return;
+
+  if (mode === 'flash') {
+    if (diff < 0) fcNext(); // swipe left -> next
+    else fcPrev();          // swipe right -> prev
+  } else if (mode === 'quiz') {
+    const idxs = filtered();
+    const nPages = Math.ceil(idxs.length / PAGE_SZ);
+    if (diff < 0 && page < nPages - 1) goPage(1);
+    else if (diff > 0 && page > 0) goPage(-1);
+  }
+}
 
 // ═══════════════════════════════════════════════
 // INIT
