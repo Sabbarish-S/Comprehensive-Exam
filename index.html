@@ -1035,7 +1035,7 @@ function renderSidebar() {
     const {c,w,tot,done}=getStats(s);
     const pct=tot>0?Math.round(done/tot*100):0;
     const col=subjects[s].color;
-    return `<button class="sbj ${s===cur?'active':''}" onclick="pickSubj(${jsStr(s)})">
+    return `<button class="sbj ${s===cur?'active':''}" onclick="pickSubj('${s.replace(/'/g, "\\'")}')">
       <span class="dot" style="background:${col}"></span>
       <span class="lbl">${s}</span>
       <span class="cnt">${done}/${tot}</span>
@@ -1161,7 +1161,7 @@ function renderQuiz() {
           else if(oi===ch && (isW||shown)) cls='opt sw';
         }
         html+=`<button class="${cls}" id="o${i}_${oi}" ${a?'disabled':''}
-          onclick="doAns(${JSON.stringify(k)},${i},${oi},${q.ans})">
+          onclick="doAns('${k}',${i},${oi},${q.ans})">
           <span class="ol">${labels[oi]}</span><span>${esc(opt)}</span>
         </button>`;
       });
@@ -1169,7 +1169,7 @@ function renderQuiz() {
       if(a && q.exp) html+=`<div class="exp"><strong>${isC?'✓ Correct!':shown?'Revealed':'✗ Wrong'}</strong> — ${esc(q.exp)}</div>`;
       html+=`<div class="qf">
         <span class="qico">${isC?'✅':isW?'❌':''}</span>
-        ${!a?`<button class="sabtn" onclick="reveal(${JSON.stringify(k)},${i},${q.ans})">Show Answer</button>`:''}
+        ${!a?`<button class="sabtn" onclick="reveal('${k}',${i},${q.ans})">Show Answer</button>`:''}
       </div></div>`;
     });
 
