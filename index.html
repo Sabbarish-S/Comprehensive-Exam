@@ -2035,32 +2035,116 @@ const subjects = {
       {q:"In indirect communication between processes P and Q __________",opts:["there is another process R to handle and pass on the messages between P and Q","there is another machine between the two processes to help communication","there is a mailbox to help communication between P and Q","none"],ans:2,exp:"Indirect communication uses mailboxes (ports) as intermediaries."}
     ]
   },
+  // "TOC": {
+  //   color: "#f43f5e",
+  //   questions: [
+  //     {q:"Statement 1: A Finite automata can be represented graphically; Statement 2: The nodes can be its states; Statement 3: The edges or arcs can be used for transitions Which of the following make the correct combination?",opts:["Statement 1 is false but Statement 2 and 3 are correct","Statement 1 and 2 are correct while 3 is wrong","None of the mentioned statements are correct","All of the mentioned statements are correct"],ans:3,exp:"Nodes are states and edges are transitions. [cite: 1783]"},
+  //     {q:"John is asked to make an deterministic finite automaton which accepts a given string for all the occurrence of ‘1001’ in it. How many number of transitions would John use such that, the string processing application works?",opts:["10","11","12","15"],ans:1,exp:"Moves only one cell at a time. [cite: 1784]"},
+  //     {q:"The production of form -&gt; ε is called:",opts:["Sigma","Null Transition","Null state","All of the mentioned"],ans:1,exp:"Standard exam answer is 11. [cite: 1787]"},
+  //     {q:"The number of tuples in anNon Deterministic Finite Automaton:",opts:["5","6","7","4"],ans:1,exp:"Known as a null (epsilon) production. [cite: 1789, 1790]"},
+  //     {q:"Predict the number of transitions required to build a DFA for the following language using only 3 states: ∑{0,1} ; L= {w | w ends with 00}",opts:["6","3","4","Cannot be said"],ans:0,exp:"Formalized as a 5-tuple. [cite: 1791, 1793]"},
+  //     {q:"Alphabet set is formed using symbols",opts:["True","False","May not be true in all cases","May be false in some cases"],ans:0,exp:"3 states * 2 symbols = 6. [cite: 1795]"},
+  //     {q:"The formal notation of a context free grammar is",opts:["G={V,T,P,S}","G={V,T,P}","G={V,T,S}","G={G1,V,T,P,S}"],ans:0,exp:"NFA can have multiple transitions. [cite: 1796]"},
+  //     {q:"which of the following grammar are useless productions S→aS | A | C A→a B→aa C→aCb",opts:["S→aS | A | C ; A→a ; B→aa ; C→aCb","S→aS | A | C ; A→a","S→aS | A | C ; B→aa","S→C ; B→aa ; C→aCb"],ans:1,exp:"Q is the set of states. [cite: 1797]"},
+  //     {q:"A grammar is said to be ambiguous when",opts:["if there exists some w∈L(G) which has atleast two left most or right most derivations","if there exists some w∈L(G) which has atleast one left most or right most derivations","if there exists some w∈L(G) which no left most or right most derivations","all"],ans:0,exp:"F is final/accepting states. [cite: 1798]"},
+  //     {q:"Any production of a context free grammar of the form A→B where A,B∈V is called",opts:["Unit production","Useless Symbol","Null Production","All"],ans:0,exp:"DFA is a subset of NFA. [cite: 1799]"},
+  //     {q:"A grammar G is called a CFG if production has",opts:["only one terminal in LHS","any combination of terminals and non-terminals on its RHS","RHS always starting with non-terminals","only one terminal in LHS and any combination of terminals and non-terminals on its RHS"],ans:1,exp:"* is Kleene closure. [cite: 1800]"},
+  //     {q:"Which of the following grammar is ambiguous",opts:["S→aS|Sa|a","S→0S0|1S1|0|1|ε","S→S0S0S|1","All of these"],ans:3,exp:"Alphabet is a set of symbols. [cite: 1801]"},
+  //     {q:"Languages are conditions in forming strings over the symbols available in the alphabet set",opts:["true","false","may be true in some cases","may be false in most of the cases"],ans:0,exp:"Represented with +. [cite: 1802]"},
+  //     {q:"The CFG for the language L={0^n 1^n |n&gt;=1} is",opts:["S→0S|S0|1","S→0S0|1S1|0|1|ε","S→S0S0S|1","S→0S1 | 01"],ans:3,exp:"Productions for non-terminals. [cite: 1803]"},
+  //     {q:"Which of the following machines accepts regular languages",opts:["NFA","DFA","PDA","All"],ans:3,exp:"V, T, P, S. [cite: 1804]"},
+  //     {q:"Which of the following languages can be accepted by DPDA",opts:["L={WcW^r | W∈{a,b}*}","L={a^nb^n|n&gt;=1}","both are correct","both are wrong"],ans:2,exp:"Called useless. [cite: 1805]"},
+  //     {q:"which of the following languages are accepted by NPDA but not by DPDA",opts:["palindrome of even length","L={0^m 1^n 2^p | m,n,p&gt;=0 and m=n}","L={0^m 1^n 2^m | m=n+p,n,p&gt;=0}","none"],ans:0,exp:"S→aS|A and A→a. [cite: 1809]"},
+  //     {q:"which of the following language is not regular",opts:["L={a^n | n&gt;=0}","L={a^nb^n | n&gt;=0}","L={a^2n | n&gt;=0}","all"],ans:1,exp:"Multiple parse trees/derivations. [cite: 1810]"},
+  //     {q:"If the PDA does not stop on an accepting state and the stack is not empty, the string is:",opts:["rejected","accepted","all of the mentioned","none of the mentioned"],ans:0,exp:"Known as unit production. [cite: 1811]"},
+  //     {q:"Identify the string set for the Σ {0,1}∗ even count of zeros and even count of ones",opts:["{00,11,0101,00001111,0101,…..}","{ε,00,11,0101,00001111,0101,…..}","{ε,010,101,001,0000111,0101,…..}","None of the choice"],ans:1,exp:"V is variables/non-terminals. [cite: 1812]"},
+  //     {q:"Identify the string set for the Σ {0,1}+ even count of zeros and odd count of ones",opts:["{ε,001,100,0000111,10101}","{001,100,01,0000111,10101}","{0101,1010,1001,01000111,101001}","{001,100,001,0000111,10101}"],ans:1,exp:"V is variables/non-terminals. [cite: 1812]"}
+  //   ]
+  // },
   "TOC": {
-    color: "#f43f5e",
-    questions: [
-      {q:"Statement 1: A Finite automata can be represented graphically; Statement 2: The nodes can be its states; Statement 3: The edges or arcs can be used for transitions Which of the following make the correct combination?",opts:["Statement 1 is false but Statement 2 and 3 are correct","Statement 1 and 2 are correct while 3 is wrong","None of the mentioned statements are correct","All of the mentioned statements are correct"],ans:3,exp:"Nodes are states and edges are transitions. [cite: 1783]"},
-      {q:"John is asked to make an deterministic finite automaton which accepts a given string for all the occurrence of ‘1001’ in it. How many number of transitions would John use such that, the string processing application works?",opts:["10","11","12","15"],ans:1,exp:"Moves only one cell at a time. [cite: 1784]"},
-      {q:"The production of form -&gt; ε is called:",opts:["Sigma","Null Transition","Null state","All of the mentioned"],ans:1,exp:"Standard exam answer is 11. [cite: 1787]"},
-      {q:"The number of tuples in anNon Deterministic Finite Automaton:",opts:["5","6","7","4"],ans:1,exp:"Known as a null (epsilon) production. [cite: 1789, 1790]"},
-      {q:"Predict the number of transitions required to build a DFA for the following language using only 3 states: ∑{0,1} ; L= {w | w ends with 00}",opts:["6","3","4","Cannot be said"],ans:0,exp:"Formalized as a 5-tuple. [cite: 1791, 1793]"},
-      {q:"Alphabet set is formed using symbols",opts:["True","False","May not be true in all cases","May be false in some cases"],ans:0,exp:"3 states * 2 symbols = 6. [cite: 1795]"},
-      {q:"The formal notation of a context free grammar is",opts:["G={V,T,P,S}","G={V,T,P}","G={V,T,S}","G={G1,V,T,P,S}"],ans:0,exp:"NFA can have multiple transitions. [cite: 1796]"},
-      {q:"which of the following grammar are useless productions S→aS | A | C A→a B→aa C→aCb",opts:["S→aS | A | C ; A→a ; B→aa ; C→aCb","S→aS | A | C ; A→a","S→aS | A | C ; B→aa","S→C ; B→aa ; C→aCb"],ans:1,exp:"Q is the set of states. [cite: 1797]"},
-      {q:"A grammar is said to be ambiguous when",opts:["if there exists some w∈L(G) which has atleast two left most or right most derivations","if there exists some w∈L(G) which has atleast one left most or right most derivations","if there exists some w∈L(G) which no left most or right most derivations","all"],ans:0,exp:"F is final/accepting states. [cite: 1798]"},
-      {q:"Any production of a context free grammar of the form A→B where A,B∈V is called",opts:["Unit production","Useless Symbol","Null Production","All"],ans:0,exp:"DFA is a subset of NFA. [cite: 1799]"},
-      {q:"A grammar G is called a CFG if production has",opts:["only one terminal in LHS","any combination of terminals and non-terminals on its RHS","RHS always starting with non-terminals","only one terminal in LHS and any combination of terminals and non-terminals on its RHS"],ans:1,exp:"* is Kleene closure. [cite: 1800]"},
-      {q:"Which of the following grammar is ambiguous",opts:["S→aS|Sa|a","S→0S0|1S1|0|1|ε","S→S0S0S|1","All of these"],ans:3,exp:"Alphabet is a set of symbols. [cite: 1801]"},
-      {q:"Languages are conditions in forming strings over the symbols available in the alphabet set",opts:["true","false","may be true in some cases","may be false in most of the cases"],ans:0,exp:"Represented with +. [cite: 1802]"},
-      {q:"The CFG for the language L={0^n 1^n |n&gt;=1} is",opts:["S→0S|S0|1","S→0S0|1S1|0|1|ε","S→S0S0S|1","S→0S1 | 01"],ans:3,exp:"Productions for non-terminals. [cite: 1803]"},
-      {q:"Which of the following machines accepts regular languages",opts:["NFA","DFA","PDA","All"],ans:3,exp:"V, T, P, S. [cite: 1804]"},
-      {q:"Which of the following languages can be accepted by DPDA",opts:["L={WcW^r | W∈{a,b}*}","L={a^nb^n|n&gt;=1}","both are correct","both are wrong"],ans:2,exp:"Called useless. [cite: 1805]"},
-      {q:"which of the following languages are accepted by NPDA but not by DPDA",opts:["palindrome of even length","L={0^m 1^n 2^p | m,n,p&gt;=0 and m=n}","L={0^m 1^n 2^m | m=n+p,n,p&gt;=0}","none"],ans:0,exp:"S→aS|A and A→a. [cite: 1809]"},
-      {q:"which of the following language is not regular",opts:["L={a^n | n&gt;=0}","L={a^nb^n | n&gt;=0}","L={a^2n | n&gt;=0}","all"],ans:1,exp:"Multiple parse trees/derivations. [cite: 1810]"},
-      {q:"If the PDA does not stop on an accepting state and the stack is not empty, the string is:",opts:["rejected","accepted","all of the mentioned","none of the mentioned"],ans:0,exp:"Known as unit production. [cite: 1811]"},
-      {q:"Identify the string set for the Σ {0,1}∗ even count of zeros and even count of ones",opts:["{00,11,0101,00001111,0101,…..}","{ε,00,11,0101,00001111,0101,…..}","{ε,010,101,001,0000111,0101,…..}","None of the choice"],ans:1,exp:"V is variables/non-terminals. [cite: 1812]"},
-      {q:"Identify the string set for the Σ {0,1}+ even count of zeros and odd count of ones",opts:["{ε,001,100,0000111,10101}","{001,100,01,0000111,10101}","{0101,1010,1001,01000111,101001}","{001,100,001,0000111,10101}"],ans:1,exp:"V is variables/non-terminals. [cite: 1812]"}
-    ]
-  },
+  color: "#f43f5e",
+  questions: [
+    {q:"Statement 1: A Finite automata can be represented graphically; Statement 2: The nodes can be its states; Statement 3: The edges or arcs can be used for transitions Which of the following make the correct combination?",opts:["Statement 1 is false but Statement 2 and 3 are correct","Statement 1 and 2 are correct while 3 is wrong","None of the mentioned statements are correct","All of the mentioned statements are correct"],ans:3,exp:"Nodes are states and edges are transitions. [cite: 1783]"},
+
+    {q:"In a Turing machine the header can move over two cells at the same time",opts:["true","false","maybe false in some cases"],ans:1,exp:"A standard Turing machine head moves only one cell left or right at a time. [cite: 1784]"},
+
+    {q:"John is asked to make an deterministic finite automaton which accepts a given string for all the occurrence of ‘1001’ in it. How many number of transitions would John use such that, the string processing application works?",opts:["10","11","12","15"],ans:0,exp:"A complete DFA over alphabet {0,1} with 5 states typically has 10 transitions. Some answer keys mark 11, but standard answer is 10. [cite: 1787]"},
+
+    {q:"The production of form -> ε is called:",opts:["Sigma","Null Transition","Null state","All of the mentioned"],ans:1,exp:"A production generating ε is commonly referred to as a null (epsilon) production; among the given options, 'Null Transition' is the intended exam choice. [cite: 1789, 1790]"},
+
+    {q:"The number of tuples in an Non Deterministic Finite Automaton:",opts:["5","6","7","4"],ans:0,exp:"An NFA is formally represented as a 5-tuple. [cite: 1791, 1793]"},
+
+    {q:"Predict the number of transitions required to build a DFA for the following language using only 3 states: ∑{0,1} ; L= {w | w ends with 00}",opts:["6","3","4","Cannot be said"],ans:0,exp:"A complete DFA with 3 states over alphabet {0,1} has 3 × 2 = 6 transitions. [cite: 1795]"},
+
+    {q:"In NFA a state cannot travel to more than one state using the same input symbol",opts:["true","false"],ans:1,exp:"In NFA, a state can have multiple transitions on the same input symbol. [cite: 1796]"},
+
+    {q:"In the tuples which is used to represent an automata Q represents the states in the automata",opts:["true","false"],ans:0,exp:"In automata notation, Q denotes the set of states. [cite: 1797]"},
+
+    {q:"In the tuples which is used to represent an automata, F represents the non final state elements in the automata",opts:["true","false"],ans:1,exp:"F denotes the set of final/accepting states, not non-final states. [cite: 1798]"},
+
+    {q:"All DFA's can be called as NFA's",opts:["true","false"],ans:0,exp:"Every DFA is a special case of an NFA. [cite: 1799]"},
+
+    {q:"Kleen closure property is represented with * symbol",opts:["true","false"],ans:0,exp:"Kleene closure is denoted by *. [cite: 1800]"},
+
+    {q:"Alphabet set is formed using symbols",opts:["True","False","May not be true in all cases","May be false in some cases"],ans:0,exp:"An alphabet is a finite non-empty set of symbols. [cite: 1801]"},
+
+    {q:"Positive closure represented with *",opts:["true","false"],ans:1,exp:"Positive closure is represented by +, not *. [cite: 1802]"},
+
+    {q:"In a Context Free Grammar every Terminal produces a language",opts:["true","false"],ans:1,exp:"In CFG, productions are defined for non-terminals, not terminals. [cite: 1803]"},
+
+    {q:"The formal notation of a context free grammar is",opts:["G={V,T,P,S}","G={V,T,P}","G={V,T,S}","G={G1,V,T,P,S}"],ans:0,exp:"A CFG is formally represented as G=(V,T,P,S). [cite: 1804]"},
+
+    {q:"A variable non terminal may be __________ if there is no way of getting terminal from it.",opts:["useful","useless","cannot determine"],ans:1,exp:"A non-terminal that cannot derive terminal strings is called useless. [cite: 1805]"},
+
+    {q:"which of the following grammar are useless productions S→aS | A | C A→a B→aa C→aCb",opts:["S→aS | A | C ; A→a ; B→aa ; C→aCb","S→aS | A | C ; A→a","S→aS | A | C ; B→aa","S→C ; B→aa ; C→aCb"],ans:1,exp:"B is unreachable and C is non-generating here, so the useful reduced grammar is S→aS|A and A→a. [cite: 1809]"},
+
+    {q:"A grammar is said to be ambiguous when",opts:["if there exists some w∈L(G) which has atleast two left most or right most derivations","if there exists some w∈L(G) which has atleast one left most or right most derivations","if there exists some w∈L(G) which no left most or right most derivations","all"],ans:0,exp:"Ambiguity means some string has more than one leftmost/rightmost derivation (or parse tree). [cite: 1810]"},
+
+    {q:"Any production of a context free grammar of the form A→B where A,B∈V is called",opts:["Unit production","Useless Symbol","Null Production","All"],ans:0,exp:"A production from one non-terminal to another is a unit production. [cite: 1811]"},
+
+    {q:"In G{V,T,P,S} where V represents Terminals",opts:["true","false","maybe true in some cases"],ans:1,exp:"V represents variables (non-terminals), while T represents terminals. [cite: 1812]"},
+
+    {q:"A grammar G is called a CFG if production has",opts:["only one terminal in LHS","any combination of terminals and non-terminals on its RHS","RHS always starting with non-terminals","only one terminal in LHS and any combination of terminals and non-terminals on its RHS"],ans:1,exp:"In CFG, the LHS must be exactly one non-terminal; among the given options, RHS can be any combination of terminals and non-terminals. [cite: 1813]"},
+
+    {q:"Which of the following grammar is ambiguous",opts:["S→aS|Sa|a","S→0S0|1S1|0|1|ε","S→S0S0S|1","All of these"],ans:3,exp:"All listed grammars can generate strings with multiple parse structures / derivations. [cite: 1814]"},
+
+    {q:"Languages are conditions in forming strings over the symbols available in the alphabet set",opts:["true","false","may be true in some cases","may be false in most of the cases"],ans:0,exp:"A language is a set of strings over an alphabet defined by certain rules/conditions. [cite: 1815]"},
+
+    {q:"The CFG for the language L={0^n 1^n |n>=1} is",opts:["S→0S|S0|1","S→0S0|1S1|0|1|ε","S→S0S0S|1","S→0S1 | 01"],ans:3,exp:"S→0S1 | 01 generates equal numbers of 0s followed by 1s, with at least one pair. [cite: 1816]"},
+
+    {q:"Which of the following machines accepts regular languages",opts:["NFA","DFA","PDA","All"],ans:3,exp:"DFA and NFA accept exactly regular languages, and PDA can also accept regular languages as a subset. [cite: 1817]"},
+
+    {q:"Which of the following languages can be accepted by DPDA",opts:["L={WcW^r | W∈{a,b}*}","L={a^nb^n|n>=1}","both are correct","both are wrong"],ans:2,exp:"As per the intended exam key, both listed languages are treated as deterministic CFLs. [cite: 1818]"},
+
+    {q:"which of the following languages are accepted by NPDA but not by DPDA",opts:["palindrome of even length","L={0^m 1^n 2^p | m,n,p>=0 and m=n}","L={0^m 1^n 2^m | m=n+p,n,p>=0}","none"],ans:0,exp:"Even-length palindromes typically require nondeterministic midpoint guessing, so NPDA yes, DPDA no. [cite: 1819]"},
+
+    {q:"PDA is equivalent to finite automata except that it has an extra memory unit called as queue",opts:["true","false"],ans:1,exp:"PDA has a stack, not a queue. [cite: 1820]"},
+
+    {q:"Finite state machines have limited memory only in the form of states.",opts:["true","false"],ans:0,exp:"FSM memory is encoded only in its finite number of states. [cite: 1821]"},
+
+    {q:"PDA may be deterministic or non-deterministic.",opts:["true","false"],ans:0,exp:"PDAs exist in both deterministic (DPDA) and nondeterministic (NPDA) forms. [cite: 1822]"},
+
+    {q:"In formal notation Z0 is stack bottom symbol",opts:["true","false"],ans:0,exp:"In PDA notation, Z0 commonly denotes the initial stack-bottom symbol. [cite: 1823]"},
+
+    {q:"which of the following language is not regular",opts:["L={a^n | n>=0}","L={a^nb^n | n>=0}","L={a^2n | n>=0}","all"],ans:1,exp:"a^n b^n is a classic non-regular language. [cite: 1824]"},
+
+    {q:"If the PDA does not stop on an accepting state and the stack is not empty, the string is:",opts:["rejected","accepted","all of the mentioned","none of the mentioned"],ans:0,exp:"If the acceptance condition is not satisfied, the string is rejected. [cite: 1825]"},
+
+    {q:"Strings can have symbols which are not shown in the alphabet set",opts:["yes","no","maybe in special case"],ans:1,exp:"A string in a language must be formed only from symbols in the alphabet. [cite: 1826]"},
+
+    {q:"The operations of PDA never work on elements, other than the top symbol in stack.",opts:["TRUE","FALSE"],ans:0,exp:"PDA stack operations access only the top of the stack. [cite: 1827]"},
+
+    {q:"Languages determine the nature of string formed using the given alphabet set",opts:["yes","no","maybe true in some cases"],ans:0,exp:"A language defines which strings over an alphabet are valid. [cite: 1828]"},
+
+    {q:"Identify the string set for the Σ {0,1}∗ even count of zeros and even count of ones",opts:["{00,11,0101,00001111,0101,…..}","{ε,00,11,0101,00001111,0101,…..}","{ε,010,101,001,0000111,0101,…..}","None of the choice"],ans:1,exp:"ε has zero 0s and zero 1s, both even, so it must be included. [cite: 1829]"},
+
+    {q:"Σ {0,1}Σ^3 = {000, 001, 010, 011, 100, 101, 110, 111 }",opts:["correct","wrong"],ans:1,exp:"As written, Σ{0,1}Σ^3 is malformed notation; if they meant Σ^3, the set shown is correct, but the expression itself is not. [cite: 1830]"},
+
+    {q:"Identify the string set for the Σ {0,1}+ even count of zeros and odd count of ones",opts:["{ε,001,100,0000111,10101}","{001,100,01,0000111,10101}","{0101,1010,1001,01000111,101001}","{001,100,001,0000111,10101}"],ans:1,exp:"Positive closure excludes ε, and examples like 001, 100, 01 have even 0s and odd 1s. [cite: 1831]"},
+
+    {q:"In DFA, a state cannot travel to more than one state with the same input symbol",opts:["true","false","maybe true in some cases"],ans:0,exp:"A DFA must have exactly one transition for each input symbol from a given state. [cite: 1832]"}
+  ]
+},
   "CAO": {
     color: "#eab308",
     questions: [
