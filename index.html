@@ -2173,26 +2173,26 @@ const subjects = {
       {q:"Which of the following SQL queries can be used to change “Mishra” to “Singh” in the “LastName” column in the People relation?",opts:["UPDATE People SET LastName=’Mishra’ INTO LastName=’Singh’","UPDATE People SET LastName=’Singh’ WHERE LastName=’Mishra’","MODIFY People SET LastName=’Mishra’ INTO LastName=’Singh’","MODIFY People SET LastName=’Singh’ WHERE LastName=’Mishra'"],ans:1,exp:"UPDATE ... SET ... WHERE. [cite: 2028]"}
     ]
   },
-  "Web Technology": {
+    "Web Technology": {
     color: "#10b981",
     questions: [
       {q:"Which company developed JavaScript?",opts:["Microsoft","Netscape","Google","Oracle"],ans:1,exp:"JavaScript was originally developed by Netscape."},
-      {q:"Which symbol is used for single-line comments in JavaScript?",opts:["<!-- -->","//","##","**"],ans:1,exp:"// is used for single-line comments in JavaScript."},
-      {q:"Which keyword declares a block-scoped variable?",opts:["var","let","static","function"],ans:0,exp:"let creates a block-scoped variable."},
+      {q:"Which symbol is used for single-line comments in JavaScript?",opts:["<!-- -->","//","##","**"],ans:0,exp:"// is used for single-line comments in JavaScript."},
+      {q:"Which keyword declares a block-scoped variable?",opts:["var","let","static","function"],ans:1,exp:"let creates a block-scoped variable."},
       {q:"How do you access a property name of an object student?",opts:["student(name)","student->name","student.name","student::name"],ans:0,exp:"Dot notation is used to access object properties."},
       {q:"Which method adds an element at the end of an array?",opts:["push()","pop()","shift()","unshift()"],ans:0,exp:"push() adds one or more elements to the end of an array."},
       {q:"Which method returns the length of a string?",opts:["size()","count()","length","strlen()"],ans:2,exp:"JavaScript strings use the .length property."},
       {q:"Which keyword stops loop execution?",opts:["stop","break","exit","return"],ans:1,exp:"break immediately exits the loop."},
-      {q:"Which operator checks both value and type?",opts:["==","!=","===","="],ans:0,exp:"=== checks strict equality (value + type)."},
+      {q:"Which operator checks both value and type?",opts:["==","!=","===","="],ans:2,exp:"=== checks strict equality (value + type)."},
       {q:"What will be the output? let str = \"JavaScript\"; console.log(str.substring(0,4));",opts:["Java","JavaS","Script","avaS"],ans:0,exp:"substring(0,4) returns characters from index 0 to 3."},
       {q:"Which method removes the last array element?",opts:["pop()","push()","shift()","delete()"],ans:0,exp:"pop() removes the last element of an array."},
       {q:"What is the default value of an uninitialized variable?",opts:["null","0","undefined","empty"],ans:2,exp:"Uninitialized variables in JavaScript have value undefined."},
       {q:"Which method adds an element at the end of an array?",opts:["push()","pop()","shift()","unshift()"],ans:0,exp:"push() inserts at the end of the array."},
       {q:"Which object is used to work with dates and time in JavaScript?",opts:["Time","Calendar","Date","Clock"],ans:0,exp:"The Date object handles date and time values."},
-      {q:"Which method returns the current year from a Date object?",opts:["getYear()","getFullYear()","getDate()","getMonth()"],ans:1,exp:"getFullYear() returns the 4-digit year."},
+      {q:"Which method returns the current year from a Date object?",opts:["getYear()","getFullYear()","getDate()","getMonth()"],ans:0,exp:"getFullYear() returns the 4-digit year."},
       {q:"Which keyword defines a function?",opts:["method","function","def","fun"],ans:1,exp:"Functions are declared using the function keyword."},
       {q:"Which of the following is NOT a JavaScript data type?",opts:["Number","Boolean","Float","String"],ans:0,exp:"JavaScript has Number, but not a separate Float type."},
-      {q:"Which method is used to search a string using a regular expression?",opts:["find()","search()","locate()","scan()"],ans:1,exp:"search() finds a match using a regular expression."},
+      {q:"Which method is used to search a string using a regular expression?",opts:["find()","search()","locate()","scan()"],ans:0,exp:"search() finds a match using a regular expression."},
       {q:"What will be the output? console.log(Array.isArray([10, 20, 30]));",opts:["false","true","undefined","Error"],ans:1,exp:"Array.isArray() returns true for arrays."},
       {q:"Which architecture separates presentation, application logic, and data storage?",opts:["Monolithic architecture","Client–Server architecture","Three-tier architecture","Peer-to-Peer architecture"],ans:2,exp:"Three-tier architecture separates UI, logic, and data layers."},
       {q:"In web architecture, the browser acts as:",opts:["Server","Client","Middleware","Database"],ans:1,exp:"The browser sends requests and receives responses, so it acts as the client."},
@@ -2216,18 +2216,21 @@ const subjects = {
       {q:"HTTPS differs from HTTP because it:",opts:["Uses FTP protocol","Encrypts data using SSL/TLS","Works only on local networks","Does not use servers"],ans:0,exp:"HTTPS secures communication using SSL/TLS encryption."},
       {q:"What is the primary purpose of cookies?",opts:["Store server-side objects","Maintain user state on the client","Execute JavaScript code","Encrypt HTTP data"],ans:0,exp:"Cookies store small data in the browser to maintain state."},
       {q:"Where are cookies stored?",opts:["Web server","Database","Client browser","Application server"],ans:0,exp:"Cookies are stored in the user's browser."},
-      {q:"Which cookie is deleted when the browser is closed?",opts:["Persistent cookie","Secure cookie","Session cookie","HTTP-only cookie"],ans:2,exp:"Session cookies expire when the browser session ends."},
+      {q:"Which cookie is deleted when the browser is closed?",opts:["Persistent cookie","Secure cookie","Session cookie","HTTP-only cookie"],ans:0,exp:"Session cookies expire when the browser session ends."},
       {q:"Sessions are mainly used to:",opts:["Store data permanently","Track users across multiple requests","Reduce server load","Improve page styling"],ans:0,exp:"Sessions help maintain user identity/state between requests."},
       {q:"Where is session data usually stored?",opts:["Client browser","Proxy server","Web server","DNS server"],ans:0,exp:"Session data is generally stored on the server."},
       {q:"Which technique is used by AJAX to update a web page without reloading?",opts:["HTML forms","XML parsing","Asynchronous server communication","CSS styling"],ans:0,exp:"AJAX uses asynchronous requests to update parts of a page."},
       {q:"Which object is traditionally used in AJAX to send requests?",opts:["Fetch","XMLHttpRequest","Document","Window"],ans:1,exp:"Traditional AJAX uses the XMLHttpRequest object."},
       {q:"What does AJAX stand for?",opts:["Asynchronous Java and XML","Asynchronous JavaScript and XML","Advanced JavaScript and XHTML","Asynchronous JSON and XML"],ans:1,exp:"AJAX stands for Asynchronous JavaScript and XML."},
       {q:"Which data format is most commonly used with modern AJAX?",opts:["XML","HTML","JSON","CSV"],ans:2,exp:"Modern AJAX most commonly exchanges data in JSON format."},
+      {q:"Which AJAX feature improves user experience?",opts:["Page reload after every request","Synchronous communication","Partial page updates","Server-side rendering only"],ans:0,exp:"AJAX can update only part of a page without full reload."},
+      {q:"AJAX requests are typically handled in the background using:",opts:["Multithreading","Asynchronous calls","Batch processing","Compilation"],ans:0,exp:"AJAX uses asynchronous requests so the page remains responsive."},
       {q:"Which is more secure for storing sensitive user data?",opts:["Cookies","Sessions","Local storage","Cache"],ans:1,exp:"Sensitive data is safer in server-side sessions than client-side storage."},
       {q:"AJAX allows:",opts:["Only synchronous data transfer","Page reload after every request","Communication with server without reloading the page","Only XML data transfer"],ans:0,exp:"AJAX enables background communication without full page refresh."}
-      ]
+    
+    ]
   }
-};
+};;;;;;;;;
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
